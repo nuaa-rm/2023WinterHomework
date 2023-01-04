@@ -97,4 +97,5 @@ if __name__ == '__main__':
     drawEdges(image, es)
     drawPoints(image, ps[0])
     cv2.imshow("test", image)
+    cv2.imwrite("photos/test.png", image)
     cv2.waitKey(0)
