@@ -3,11 +3,12 @@ import math
 
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 
 point2pixel = 100       # 两地图点之间的像素距离
 pSize = (3, 3)          # 地图尺寸（同时决定最多存在的点的数目
-pNumber = 9             # 点数量（最终可能由于无解少于此设置数量）
-ek = 5                  # 边数量系数，越小边越多， [4, 15]
+pNumber = 4             # 点数量（最终可能由于无解少于此设置数量）
+ek = 10                 # 边数量系数，越小边越多， [4, 15]
 
 eNumber = round(random.random() * pNumber ** 2 / 10) + pNumber
 isUsed = [False] * pNumber
@@ -112,13 +113,26 @@ def drawPoints(img, points):
             cv2.circle(img, p2p(point), 5, (255, 255, 255), -1)
 
 
-if __name__ == '__main__':
+def generateImage(_point2pixel=100, _pSize=(3, 3), _pNumber=9, _ek=5):
+    global point2pixel, pSize, pNumber, ek, eNumber, isUsed
+    point2pixel = _point2pixel
+    pSize = _pSize
+    pNumber = _pNumber
+    ek = _ek
+    eNumber = round(random.random() * pNumber ** 2 / 10) + pNumber
+    isUsed = [False] * pNumber
     if pNumber > pSize[0] * pSize[1]:
-        exit(-1)
+        return 0
     ps = roundPMap()
     es = roundEdges(ps[0])
-    image = np.ones((pSize[0] * point2pixel, pSize[1] * point2pixel, 3), np.uint8) * 255
-    drawEdges(image, es)
-    drawPoints(image, ps[0])
-    cv2.imshow("test", image)
-    cv2.waitKey(0)
+    _image = np.ones((pSize[0] * point2pixel, pSize[1] * point2pixel, 3), np.uint8) * 255
+    drawEdges(_image, es)
+    drawPoints(_image, ps[0])
+    return _image
+
+
+if __name__ == '__main__':
+    image = generateImage(100, (5, 5), 25, 15)
+    plt.imshow(image[:, :, ::-1])
+    plt.show()
+    cv2.imwrite('images/test.png', image)
