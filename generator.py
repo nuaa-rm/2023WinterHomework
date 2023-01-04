@@ -4,14 +4,21 @@ import math
 import cv2
 import numpy as np
 
-point2pixel = 200
-pSize = (3, 3)
-pNumber = 5
-eNumber = round(random.random() * pNumber / 2) + pNumber
+point2pixel = 100       # 两地图点之间的像素距离
+pSize = (3, 3)          # 地图尺寸（同时决定最多存在的点的数目
+pNumber = 9             # 点数量（最终可能由于无解少于此设置数量）
+ek = 5                  # 边数量系数，越小边越多， [4, 15]
+
+eNumber = round(random.random() * pNumber ** 2 / 10) + pNumber
+isUsed = [False] * pNumber
+
+
+def rand(num):
+    return math.floor(random.random() * num)
 
 
 def roundPoint():
-    return math.floor(random.random() * pSize[1]), math.floor(random.random() * pSize[1])
+    return rand(pSize[1]), rand(pSize[1])
 
 
 def samePoint(p1, p2):
@@ -22,15 +29,19 @@ def sameEdge(e1, e2):
     return samePoint(e1[0], e2[0]) and samePoint(e1[1], e2[1]) or samePoint(e1[0], e2[1]) and samePoint(e1[1], e2[0])
 
 
-def lineValid(edge):
-    e = [abs(edge[0][i] - edge[1][i]) for i in range(2)]
+def lineValid(edge, points):
+    e = [edge[1][i] - edge[0][i] for i in range(2)]
+    length2 = e[0] ** 2 + e[1] ** 2
+    angle = math.atan2(e[1], e[0])
     ok = True
-    for i in range(2, max(pSize)+1):
-        _e = [e[j] / i for j in range(2)]
-        _e = [abs(_e[j] - round(_e[j])) for j in range(2)]
-        if _e[0] < 1e-2 and _e[1] < 1e-2:
-            ok = False
-            break
+    for point in points:
+        _e = [point[i] - edge[0][i] for i in range(2)]
+        _angle = math.atan2(_e[1], _e[0])
+        if abs(_angle - angle) < 0.01:
+            _length = _e[0] ** 2 + _e[1] ** 2
+            if _length < length2:
+                ok = False
+                break
     return ok
 
 
@@ -53,13 +64,19 @@ def roundPMap():
 def roundEdges(points):
     _eNumber = eNumber
     edges = []
-    p0 = points[math.floor(random.random() * len(points))]
+    index0 = math.floor(random.random() * len(points))
+    p0 = points[index0]
+    isUsed[index0] = True
+    _iterNumber = 0
     print(p0)
-    while _eNumber > 0:
-        p1 = points[math.floor(random.random() * len(points))]
-        if samePoint(p0, p1):
+    while _eNumber > 0 and _iterNumber < pNumber * 5:
+        index1 = math.floor(random.random() * len(points))
+        p1 = points[index1]
+        if index0 == index1:
+            _iterNumber += 1
             continue
-        if not lineValid((p0, p1)):
+        if not lineValid((p0, p1), points):
+            _iterNumber += 1
             continue
         has = False
         for edge in edges:
@@ -67,11 +84,14 @@ def roundEdges(points):
                 has = True
                 break
         if has:
+            _iterNumber += 1
             continue
         print(p1)
+        isUsed[index1] = True
         edges.append((p0, p1))
         p0 = p1
         _eNumber -= 1
+        _iterNumber = 0
     return edges
 
 
@@ -85,12 +105,16 @@ def drawEdges(img, edges):
 
 
 def drawPoints(img, points):
-    for point in points:
-        cv2.circle(img, p2p(point), 15, (102, 55, 243), -1)
-        cv2.circle(img, p2p(point), 5, (255, 255, 255), -1)
+    for i in range(len(points)):
+        if isUsed[i]:
+            point = points[i]
+            cv2.circle(img, p2p(point), 15, (102, 55, 243), -1)
+            cv2.circle(img, p2p(point), 5, (255, 255, 255), -1)
 
 
 if __name__ == '__main__':
+    if pNumber > pSize[0] * pSize[1]:
+        exit(-1)
     ps = roundPMap()
     es = roundEdges(ps[0])
     image = np.ones((pSize[0] * point2pixel, pSize[1] * point2pixel, 3), np.uint8) * 255
