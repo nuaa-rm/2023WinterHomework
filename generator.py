@@ -135,15 +135,20 @@ def generateImage(_point2pixel=100, _pSize=(3, 3), _pNumber=9, _ek=5):
     drawPoints(_image, ps[0])
     pss = []
     ess = []
+    remap = [-1] * len(ps[0])
+    count = 0
     for i in range(len(isUsed)):
         if isUsed[i]:
             pss.append(p2p(ps[0][i]))
+            remap[i] = count
+            count += 1
     for edge in es:
-        ess.append([ps[1][edge[0][0]][edge[0][1]], ps[1][edge[1][0]][edge[1][1]]])
+        if not samePoint(edge[0], edge[1]):
+            ess.append((remap[ps[1][edge[0][0]][edge[0][1]]], remap[ps[1][edge[1][0]][edge[1][1]]]))
     print("total nodes: %i" % len(pss))
     print("total edges: %i" % len(ess))
     with open('answers/result.json', 'w') as file:
-        json.dump({'points': pss, 'edges': ess}, file)
+        json.dump({'nodes': pss, 'edges': ess}, file)
     return _image
 
 

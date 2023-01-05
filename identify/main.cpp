@@ -84,12 +84,17 @@ int main() {
     float nodeRadius = findNodes(raw_image, nodes);
     findEdges(raw_image, nodes, edges, nodeRadius);
 
-    std::cout << "Nodes: " << nodes.size() << std::endl;
-    std::cout << "total edges: " << edges.size() << std::endl;
+    std::cout << nodes.size() << std::endl;
+    for (const auto &node : nodes) {
+        std::cout << node.x << " " << node.y << std::endl;
+    }
 
-    cv::imshow("result", raw_image);
-    cv::waitKey();
+    std::cout << edges.size() << std::endl;
+    for (const auto &edge : edges) {
+        std::cout << edge.start << " " << edge.end << std::endl;
+    }
 
+    cv::imwrite("result.png", raw_image);
     return 0;
 }
 
