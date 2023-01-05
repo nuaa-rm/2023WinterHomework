@@ -70,7 +70,10 @@ def isEdgesContinuity(es):
 
 
 def drawPoints(img, pss):
-    _, _left, _right, __ = pss
+    _in, _left, _right, _ = pss
+    for p in _in:
+        cv2.circle(img, p, 15, (102, 55, 243), -1)
+        cv2.circle(img, p, 5, (255, 255, 255), -1)
     for p in _right:
         cv2.circle(img, p, 15, (102, 55, 243), -1)
     for p in _left:
@@ -108,8 +111,8 @@ def judge(img_path, answer_path, exec_path):
 
     ess = edgesCompare(answer['edges'], es_a)
 
-    drawPoints(img, nss)
     drawEdges(img, ess, answer['nodes'])
+    drawPoints(img, nss)
 
     print('Time: %.4fs' % (end - start))
 

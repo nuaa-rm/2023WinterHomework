@@ -153,7 +153,7 @@ def generateImage(_point2pixel=100, _pSize=(3, 3), _pNumber=9, _ek=5):
 
 
 if __name__ == '__main__':
-    image = generateImage(100, (6, 6), 30, 5)
+    image = generateImage(100, (6, 6), 36, 5)
     plt.imshow(image[:, :, ::-1])
     plt.show()
     cv2.imwrite('images/test.png', image)
