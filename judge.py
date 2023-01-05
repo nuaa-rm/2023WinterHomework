@@ -145,6 +145,6 @@ def judge(img_path, answer_path, exec_path):
 
 if __name__ == '__main__':
     image = judge('/home/bismarck/2023WinterHomework/images/test.png',
-                  'answers/result.json', 'identify/cmake-build-debug/identify')
+                  'answers/result.json', 'identify_bismarck/cmake-build-debug/identify')
     plt.imshow(image[:, :, ::-1])
     plt.show()
