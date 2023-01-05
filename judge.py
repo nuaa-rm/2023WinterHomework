@@ -140,7 +140,7 @@ def judge(img_path, answer_path, exec_path):
 
     print('Is edges continuity: %s' % isEdgesContinuity(es_a))
 
-    return img
+    return img, time, nss, ess
 
 
 if __name__ == '__main__':
