@@ -129,12 +129,14 @@ def judge(img_path, answer_path, exec_path):
     print('Edges Precision: %.2f%%' % (len(ess[0]) / len(answer['edges']) * 100))
     if len(ess[1]) > 0:
         for e in ess[1]:
-            print('\t(%i, %i)' % (e[0], e[1]))
+            print('\t%s -> %s' %
+                  tuple([str(list(int((answer['nodes'][e[i]][j] - 50) / 100) for j in range(2))) for i in range(2)]))
 
     print('Edges Recall: %.2f%%' % (len(ess[0]) / len(es_a) * 100))
     if len(ess[2]) > 0:
         for e in ess[2]:
-            print('\t(%i, %i)' % (e[0], e[1]))
+            print('\t%s -> %s' %
+                  tuple([str(list(int((answer['nodes'][e[i]][j] - 50) / 100) for j in range(2))) for i in range(2)]))
 
     print('Is edges continuity: %s' % isEdgesContinuity(es_a))
 
