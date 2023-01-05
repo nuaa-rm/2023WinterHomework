@@ -19,9 +19,10 @@ for i in circles[0, :]:
     x, y, r = i[0], i[1], i[2]
     # 绘制圆形包围框
     print(x, y, r)
-    cv2.circle(img, (int(x), int(y)), int(r), (0, 255, 0), 2)
+    cv2.circle(img, (int(x), int(y)), int(r+5), (255, 255, 255), -1)
 
 # 显示图像
 cv2.imshow("detected circles", img)
+cv2.imwrite("photos/detected_circles_hough.png", img)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
