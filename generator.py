@@ -1,5 +1,6 @@
 import random
 import math
+import json
 
 import cv2
 import numpy as np
@@ -55,11 +56,15 @@ def roundPMap():
             _pNumber -= 1
             _points[p[0]][p[1]] = True
     points = []
+    __points = [[-1] * pSize[0] for _ in range(pSize[1])]
+    count = 0
     for i in range(pSize[0]):
         for j in range(pSize[1]):
             if _points[i][j]:
                 points.append((i, j))
-    return points, _points
+                __points[i][j] = count
+                count += 1
+    return points, __points
 
 
 def roundEdges(points):
@@ -128,11 +133,22 @@ def generateImage(_point2pixel=100, _pSize=(3, 3), _pNumber=9, _ek=5):
     _image = np.ones((pSize[0] * point2pixel, pSize[1] * point2pixel, 3), np.uint8) * 255
     drawEdges(_image, es)
     drawPoints(_image, ps[0])
+    pss = []
+    ess = []
+    for i in range(len(isUsed)):
+        if isUsed[i]:
+            pss.append(p2p(ps[0][i]))
+    for edge in es:
+        ess.append([ps[1][edge[0][0]][edge[0][1]], ps[1][edge[1][0]][edge[1][1]]])
+    print("total nodes: %i" % len(pss))
+    print("total edges: %i" % len(ess))
+    with open('answers/result.json', 'w') as file:
+        json.dump({'points': pss, 'edges': ess}, file)
     return _image
 
 
 if __name__ == '__main__':
-    image = generateImage(100, (5, 5), 25, 15)
+    image = generateImage(100, (6, 6), 30, 5)
     plt.imshow(image[:, :, ::-1])
     plt.show()
     cv2.imwrite('images/test.png', image)
