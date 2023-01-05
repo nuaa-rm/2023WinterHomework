@@ -74,7 +74,6 @@ def roundEdges(points):
     p0 = points[index0]
     isUsed[index0] = True
     _iterNumber = 0
-    print(p0)
     while _eNumber > 0 and _iterNumber < pNumber * 5:
         index1 = math.floor(random.random() * len(points))
         p1 = points[index1]
@@ -92,7 +91,6 @@ def roundEdges(points):
         if has:
             _iterNumber += 1
             continue
-        print(p1)
         isUsed[index1] = True
         edges.append((p0, p1))
         p0 = p1
@@ -145,8 +143,6 @@ def generateImage(_point2pixel=100, _pSize=(3, 3), _pNumber=9, _ek=5):
     for edge in es:
         if not samePoint(edge[0], edge[1]):
             ess.append((remap[ps[1][edge[0][0]][edge[0][1]]], remap[ps[1][edge[1][0]][edge[1][1]]]))
-    print("total nodes: %i" % len(pss))
-    print("total edges: %i" % len(ess))
     with open('answers/result.json', 'w') as file:
         json.dump({'nodes': pss, 'edges': ess}, file)
     return _image

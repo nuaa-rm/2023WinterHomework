@@ -94,7 +94,9 @@ int main() {
         std::cout << edge.start << " " << edge.end << std::endl;
     }
 
+#ifndef FAST_MODE
     cv::imwrite("result.png", raw_image);
+#endif
     return 0;
 }
 
@@ -244,7 +246,7 @@ void findEdgesImpl(const cv::Mat &img, const cv::Mat &edgeMaskR, const std::vect
                     length = e1.getLength(nodes[i]);
                     l2s = e1.getLengthFromStart(nodes[i]);
                     l2e = e1.getLengthFromEnd(nodes[i]);
-                    if (length < nodeRadius * 0.1 && l2s > 0 && l2e < 0) {
+                    if (length < nodeRadius * 0.05 && l2s > 0 && l2e < 0) {
                         ok = false;
                         break;
                     }

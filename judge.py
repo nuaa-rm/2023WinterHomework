@@ -110,11 +110,16 @@ def judge(img_path, answer_path, exec_path):
     es_a = [[nss[3][it[i]] for i in range(2)] for it in es_a]
 
     ess = edgesCompare(answer['edges'], es_a)
+    continuity = isEdgesContinuity(es_a)
 
     drawEdges(img, ess, answer['nodes'])
     drawPoints(img, nss)
 
-    print('Time: %.4fs' % (end - start))
+    return img, end-start, answer, nss, ess, ns_a, es_a, continuity
+
+
+def printResult(runtime, answer, nss, ess, ns_a, es_a, continuity):
+    print('Time: %.4fs' % runtime)
 
     print('Nodes Precision: %.2f%%' % (len(nss[0]) / len(answer['nodes']) * 100))
     if len(nss[1]) > 0:
@@ -138,13 +143,12 @@ def judge(img_path, answer_path, exec_path):
             print('\t%s -> %s' %
                   tuple([str(list(int((answer['nodes'][e[i]][j] - 50) / 100) for j in range(2))) for i in range(2)]))
 
-    print('Is edges continuity: %s' % isEdgesContinuity(es_a))
-
-    return img, time, nss, ess
+    print('Is edges continuity: %s' % continuity)
 
 
 if __name__ == '__main__':
-    image = judge('/home/bismarck/2023WinterHomework/images/test.png',
-                  'answers/result.json', 'identify_bismarck/cmake-build-debug/identify')
-    plt.imshow(image[:, :, ::-1])
+    res = judge('/home/bismarck/2023WinterHomework/images/test.png', 'answers/result.json',
+                'identify_bismarck/cmake-build-debug/identify')
+    printResult(*res[1:])
+    plt.imshow(res[0][:, :, ::-1])
     plt.show()
