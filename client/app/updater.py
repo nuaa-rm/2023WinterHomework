@@ -1,0 +1,91 @@
+import app
+
+import tempfile
+import threading
+import time
+import traceback
+import os
+import shutil
+import zipfile
+
+import webview
+import oss2
+
+akid = ''
+aksc = ''
+auth = oss2.Auth(akid, aksc)
+bucket = oss2.Bucket(auth, 'http://oss-cn-hangzhou.aliyuncs.com', 'ckyf-updater')
+appPath = os.path.join(os.path.dirname(__file__), 'app')
+launchPath = os.path.join(os.path.dirname(__file__), 'static/index.html')
+
+
+def getCloudVersion():
+    with tempfile.TemporaryDirectory() as dirName:
+        path = os.path.join(dirName, 'version.txt')
+        try:
+            bucket.get_object_to_file('version.txt', path)
+            with open(path, 'r') as f:
+                return float(f.read())
+        except Exception:
+            traceback.print_exception()
+            return -1
+
+
+def getLocalVersion():
+    return app.version
+
+
+def msgHook(window: webview.Window, msg):
+    window.evaluate_js(f"window.msgHook('{msg}')")
+
+
+def warnHook(window: webview.Window, msg):
+    window.evaluate_js(f"window.statusHook(1, '{msg}')")
+
+
+def update(version):
+    with tempfile.TemporaryDirectory() as dirName:
+        path = os.path.join(dirName, '2023WH.zip')
+        try:
+            bucket.get_object_to_file('2023WH-%.2f.zip' % version, path)
+            try:
+                shutil.rmtree(appPath)
+                os.mkdir(appPath)
+                with zipfile.ZipFile(path, 'r') as zip:
+                    zip.extractall(appPath)
+                return 0
+            except Exception:
+                traceback.print_exc()
+                return 2
+        except Exception:
+            traceback.print_exc()
+            return 1
+
+
+def updateProc(window):
+    cloudVersion = getCloudVersion()
+    localVersion = getLocalVersion()
+    print(f'Now Cloud Version: {cloudVersion}')
+    print(f'Now Local Version: {localVersion}')
+    if cloudVersion > localVersion:
+        msgHook(window, "正在更新...")
+        status = update(cloudVersion)
+        if status == 0:
+            msgHook(window, "更新成功！即将启动")
+        elif status == 1:
+            warnHook(window, "更新失败！将在下次启动时重试")
+            time.sleep(4)
+        elif status == 2:
+            warnHook(window, "严重错误！请联系管理员")
+            time.sleep(20)
+            exit(-1)
+    time.sleep(2)
+    window.destroy()
+
+
+def run():
+    window = webview.create_window('CKYF Updater', launchPath, height=240, width=380,
+                                   resizable=False, frameless=True, transparent=True)
+    updateThread = threading.Thread(target=updateProc, args=(window,)).start()
+    webview.start(gui='gtk', http_server=True)
+    print('Update Done')

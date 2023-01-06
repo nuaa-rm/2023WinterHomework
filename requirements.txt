@@ -1,7 +1,9 @@
 opencv-python
 matplotlib
 numpy
-eel
+pywebview
 pyinstaller
 flask
 gevent
+pygobject
+oss2
