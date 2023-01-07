@@ -1,0 +1,5 @@
+opencv-python
+pywebview
+numpy
+oss2
+easycython

@@ -1,0 +1,1 @@
+{"version":3,"file":"static/css/main.3bb93612.css","mappings":"AAAA,MAME,eAAgB,CALhB,iBAAkB,CAClB,0BAA2B,CAG3B,yBAA0B,CAF1B,UAAW,CACX,wBAGF","sources":["App.css"],"sourcesContent":[".bbox {\n  border-radius: 8px;\n  box-shadow: 0 0 8px #205295;\n  margin: 8px;\n  width: calc(100vw - 16px);\n  height: calc(100vh - 16px);\n  background: #eee;\n}\n"],"names":[],"sourceRoot":""}

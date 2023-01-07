@@ -1,0 +1,17 @@
+.bbox {
+    border-radius: 8px;
+    box-shadow: 0 0 8px #205295;
+    margin: 8px;
+    width: calc(100vw - 16px);
+    height: calc(100vh - 16px);
+    background: #DEE1E6;
+    overflow: hidden;
+}
+
+.content {
+    width: calc(100vw - 72px);
+    height: calc(100vh - 56px);
+    background: #fff;
+    margin-left: -24px;
+    padding: 5px;
+}

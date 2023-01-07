@@ -27,7 +27,7 @@ def getCloudVersion():
             with open(path, 'r') as f:
                 return float(f.read())
         except Exception:
-            traceback.print_exception()
+            traceback.print_exc()
             return -1
 
 
@@ -64,6 +64,11 @@ def update(version):
 
 def updateProc(window):
     cloudVersion = getCloudVersion()
+    if cloudVersion < 0:
+        warnHook(window, "更新失败！将在下次启动时重试")
+        time.sleep(6)
+        window.destroy()
+        return
     localVersion = getLocalVersion()
     print(f'Now Cloud Version: {cloudVersion}')
     print(f'Now Local Version: {localVersion}')
@@ -84,7 +89,7 @@ def updateProc(window):
 
 
 def run():
-    window = webview.create_window('CKYF Updater', launchPath, height=240, width=380,
+    window = webview.create_window('CKYF Updater', launchPath, height=250, width=500,
                                    resizable=False, frameless=True, transparent=True)
     updateThread = threading.Thread(target=updateProc, args=(window,)).start()
     webview.start(gui='gtk', http_server=True)
