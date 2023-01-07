@@ -3,6 +3,7 @@ rm -rf dist
 mkdir dist
 cp main.py dist/
 cp updater.py dist/
+cp config.py dist/
 cp -r static dist/
 cp -r app dist/
 cd dist
