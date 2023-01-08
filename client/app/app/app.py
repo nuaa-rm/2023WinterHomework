@@ -1,7 +1,9 @@
-from . import generator, judge
+from . import generator, judge, draw
 import config
 
 import os
+import shutil
+from tkinter import filedialog
 
 import cv2
 import webview
@@ -14,6 +16,8 @@ def closeWindowCreator(window):
     def closeWindow():
         print("close window")
         window.destroy()
+        shutil.rmtree(imagesPath)
+        os.mkdir(imagesPath)
     return closeWindow
 
 
@@ -50,8 +54,13 @@ def localCompute(req):
     return result
 
 
+def stepCompute():
+    path = filedialog.askopenfilename()
+    return draw.compute(path)
+
+
 def run():
     window = webview.create_window('CKYF 2023WH', launchPath, height=820, width=1280,
                                    resizable=True, frameless=True, transparent=True, easy_drag=False)
-    window.expose(closeWindowCreator(window), minimizeWindowCreator(window), localCompute)
+    window.expose(closeWindowCreator(window), minimizeWindowCreator(window), localCompute, stepCompute)
     webview.start(gui='gtk', http_server=True)

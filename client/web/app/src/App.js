@@ -3,14 +3,16 @@ import {Layout, Button, Tabs, Tooltip} from 'antd';
 import {MinusOutlined, CloseOutlined, CaretRightOutlined, GatewayOutlined, PictureOutlined, RedEnvelopeOutlined} from '@ant-design/icons'
 import {closeWindow, minimizeWindow, localCompute} from "./utils";
 import Local from "./local";
+import Picture from "./picture";
 import './border.css'
 
 const {Header} = Layout;
 
 class App extends Component {
-    state = {tabKey: 1}
+    state = {tabKey: '1'}
 
     localTestRef = React.createRef()
+    pictureTestRef = React.createRef()
 
     onTabChange = v => {
         this.setState({tabKey: v})
@@ -18,14 +20,14 @@ class App extends Component {
 
     compute = async () => {
         const that = this
-        if (that.state.tabKey === 1) {
+        if (that.state.tabKey === '1') {
             const data = that.localTestRef?.current?.startComputeCreator()()
             console.log(data)
             const result = await localCompute(data)
             that.localTestRef?.current?.finishComputeCreator()(result)
-        } else if (that.state.tabKey === 2) {
-
-        } else if (that.state.tabKey === 3) {
+        } else if (that.state.tabKey === '2') {
+            that.pictureTestRef?.current?.startComputeCreator()()
+        } else if (that.state.tabKey === '3') {
 
         }
     }
@@ -103,12 +105,11 @@ class App extends Component {
                             },
                             {
                                 label:
-                                    <Tooltip placement="right" title="图片输入（开发中）" color="blue">
+                                    <Tooltip placement="right" title="图片输入" color="blue">
                                         <PictureOutlined style={{fontSize: 20}} />
                                     </Tooltip>,
                                 key: '2',
-                                children: `Content of Tab Pane 2`,
-                                disabled: true
+                                children: <Picture ref={this.pictureTestRef} />,
                             },
                             {
                                 label:
