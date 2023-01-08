@@ -12,7 +12,14 @@ class Picture extends Component {
         return async () => {
             that.setState({loading: true})
             const maxStep = await stepCompute()
-            this.setState({maxStep, nowStep: 0, t1: new Date().getTime(), loading: false})
+            that.setState({maxStep, nowStep: 0, t1: new Date().getTime(), loading: false})
+        }
+    }
+
+    errorHandleCreator() {
+        const that = this;
+        return async () => {
+            that.setState({maxStep: 0, nowStep: 0, t1: new Date().getTime(), loading: false})
         }
     }
 

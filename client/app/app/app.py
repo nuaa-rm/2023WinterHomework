@@ -1,5 +1,4 @@
-from . import generator, judge, draw
-import config
+from . import generator, judge, draw, exec
 
 import os
 import shutil
@@ -18,6 +17,7 @@ def closeWindowCreator(window):
         window.destroy()
         shutil.rmtree(imagesPath)
         os.mkdir(imagesPath)
+        exit(0)
     return closeWindow
 
 
@@ -46,7 +46,7 @@ def localCompute(req):
         pn = 15
     img, answer = generator.generateImage((size, size), pn, en)
     cv2.imwrite(os.path.join(imagesPath, 'question.png'), img)
-    result = judge.judge(os.path.join(imagesPath, 'question.png'), config.exec_path, answer)
+    result = judge.judge(os.path.join(imagesPath, 'question.png'), answer)
     cv2.imwrite(os.path.join(imagesPath, 'result.png'), result[0])
     judge.printResult(*result[1:])
     result = judge.result2dict(*result[1:])
@@ -55,12 +55,13 @@ def localCompute(req):
 
 
 def stepCompute():
-    path = filedialog.askopenfilename()
+    path = filedialog.askopenfilename(title='选择要识别的图片', filetypes=[('png images', '*.png'), ('jpg images', '*.jpg')])
     return draw.compute(path)
 
 
 def run():
     window = webview.create_window('CKYF 2023WH', launchPath, height=820, width=1280,
                                    resizable=True, frameless=True, transparent=True, easy_drag=False)
+    exec.window = window
     window.expose(closeWindowCreator(window), minimizeWindowCreator(window), localCompute, stepCompute)
-    webview.start(gui='gtk', http_server=True)
+    webview.start(gui='gtk', http_server=True, debug=True)

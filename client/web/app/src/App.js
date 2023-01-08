@@ -1,5 +1,5 @@
 import React, {Component} from 'react';
-import {Layout, Button, Tabs, Tooltip} from 'antd';
+import {Layout, Button, Tabs, Tooltip, Modal} from 'antd';
 import {MinusOutlined, CloseOutlined, CaretRightOutlined, GatewayOutlined, PictureOutlined, RedEnvelopeOutlined} from '@ant-design/icons'
 import {closeWindow, minimizeWindow, localCompute} from "./utils";
 import Local from "./local";
@@ -26,9 +26,26 @@ class App extends Component {
             const result = await localCompute(data)
             that.localTestRef?.current?.finishComputeCreator()(result)
         } else if (that.state.tabKey === '2') {
-            that.pictureTestRef?.current?.startComputeCreator()()
+            await that.pictureTestRef?.current?.startComputeCreator()()
         } else if (that.state.tabKey === '3') {
 
+        }
+    }
+
+    componentDidMount() {
+        const that = this
+        window.errorMsg = event => {
+            Modal.error({
+                title: '出错啦',
+                content: event
+            })
+            if (that.state.tabKey === '1') {
+                that.localTestRef?.current?.finishComputeCreator()(null)
+            } else if (that.state.tabKey === '2') {
+                that.pictureTestRef?.current?.errorHandleCreator()()
+            } else if (that.state.tabKey === '3') {
+
+            }
         }
     }
 

@@ -1,5 +1,4 @@
-import subprocess
-import time
+from . import exec
 
 import cv2
 
@@ -81,23 +80,11 @@ def drawEdges(img, ess, ps):
         cv2.line(img, ps[e[0]], ps[e[1]], (255, 204, 211), 12)
 
 
-def judge(img_path, exec_path, answer):
+def judge(img_path, answer):
     img = cv2.imread(img_path)
 
-    proc = subprocess.Popen(exec_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    start = time.time()
-    out, _ = proc.communicate(img_path.encode())
-    end = time.time()
-    out = out.decode().split('\n')
+    runtime, ns_a, es_a = exec.exec(img_path)
 
-    nodes_len = int(out[0])
-    ns_a = []
-    for i in range(nodes_len):
-        ns_a.append([float(x) for x in out[i + 1].split(' ')])
-    edges_len = int(out[nodes_len + 1])
-    es_a = []
-    for i in range(edges_len):
-        es_a.append([int(x) for x in out[i + nodes_len + 2].split(' ')])
     nss = pointsCompare(answer['nodes'], ns_a)
     es_a = [[nss[3][it[i]] for i in range(2)] for it in es_a]
 
@@ -107,7 +94,7 @@ def judge(img_path, exec_path, answer):
     drawEdges(img, ess, answer['nodes'])
     drawPoints(img, nss)
 
-    return img, end-start, answer, nss, ess, ns_a, es_a, continuity
+    return img, runtime, answer, nss, ess, ns_a, es_a, continuity
 
 
 def result2dict(runtime, answer, nss, ess, ns_a, es_a, continuity):
