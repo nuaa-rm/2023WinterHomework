@@ -1,4 +1,4 @@
-import app
+import config
 
 import tempfile
 import threading
@@ -32,7 +32,7 @@ def getCloudVersion():
 
 
 def getLocalVersion():
-    return app.version
+    return config.getLocalVersion()
 
 
 def msgHook(window: webview.Window, msg):
@@ -49,10 +49,14 @@ def update(version):
         try:
             bucket.get_object_to_file('2023WH-%.2f.zip' % version, path)
             try:
-                shutil.rmtree(appPath)
-                os.mkdir(appPath)
+                if os.path.exists(appPath):
+                    shutil.rmtree(appPath)
+                os.mkdir(os.path.join(dirName, 'app'))
                 with zipfile.ZipFile(path, 'r') as zip:
-                    zip.extractall(appPath)
+                    zip.extractall(os.path.join(dirName, 'app'))
+                    os.system('chmod +x %s' % os.path.join(dirName, 'app/buildApp.sh'))
+                    os.system(os.path.join(dirName, 'app/buildApp.sh'))
+                shutil.move(os.path.join(dirName, 'app'), appPath)
                 return 0
             except Exception:
                 traceback.print_exc()
@@ -82,7 +86,7 @@ def updateProc(window):
             time.sleep(4)
         elif status == 2:
             warnHook(window, "严重错误！请联系管理员")
-            time.sleep(20)
+            time.sleep(8)
             exit(-1)
     time.sleep(2)
     window.destroy()
