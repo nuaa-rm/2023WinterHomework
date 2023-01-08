@@ -57,6 +57,11 @@ def update(version):
                     os.system('chmod +x %s' % os.path.join(dirName, 'app/buildApp.sh'))
                     os.system(os.path.join(dirName, 'app/buildApp.sh'))
                 shutil.move(os.path.join(dirName, 'app'), appPath)
+                try:
+                    from app import app
+                except Exception:
+                    traceback.print_exc()
+                    return 3
                 return 0
             except Exception:
                 traceback.print_exc()
@@ -87,6 +92,12 @@ def updateProc(window):
         elif status == 2:
             warnHook(window, "严重错误！请联系管理员")
             time.sleep(8)
+            window.destroy()
+            exit(-1)
+        elif status == 3:
+            warnHook(window, "严重错误！请重新启动程序")
+            time.sleep(4)
+            window.destroy()
             exit(-1)
     time.sleep(2)
     window.destroy()
