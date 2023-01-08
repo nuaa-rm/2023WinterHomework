@@ -1,4 +1,4 @@
-from . import exec
+from . import procExec
 
 import os
 
@@ -28,7 +28,7 @@ def compute(img_path):
     img_path = os.path.join(imagesPath, 'input.png')
     cv2.imwrite(img_path, img)
 
-    _, ns_a, es_a = exec.exec(img_path)
+    _, ns_a, es_a = procExec.run(img_path)
     es = [[[round(it) for it in ns_a[i]] for i in _e] for _e in es_a]
 
     for i in range(len(es_a)):

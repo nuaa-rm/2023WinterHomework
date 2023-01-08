@@ -1,4 +1,4 @@
-from . import generator, judge, draw, exec
+from . import generator, judge, draw, procExec
 
 import os
 import shutil
@@ -62,6 +62,6 @@ def stepCompute():
 def run():
     window = webview.create_window('CKYF 2023WH', launchPath, height=820, width=1280,
                                    resizable=True, frameless=True, transparent=True, easy_drag=False)
-    exec.window = window
+    procExec.window = window
     window.expose(closeWindowCreator(window), minimizeWindowCreator(window), localCompute, stepCompute)
     webview.start(gui='gtk', http_server=True, debug=True)

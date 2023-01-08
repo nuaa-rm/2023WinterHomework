@@ -1,4 +1,4 @@
-from . import exec
+from . import procExec
 
 import cv2
 
@@ -83,7 +83,7 @@ def drawEdges(img, ess, ps):
 def judge(img_path, answer):
     img = cv2.imread(img_path)
 
-    runtime, ns_a, es_a = exec.exec(img_path)
+    runtime, ns_a, es_a = procExec.run(img_path)
 
     nss = pointsCompare(answer['nodes'], ns_a)
     es_a = [[nss[3][it[i]] for i in range(2)] for it in es_a]

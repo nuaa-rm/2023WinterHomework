@@ -3,21 +3,18 @@ import config
 import subprocess
 import threading
 import time
-import traceback
 
 window = None
-running = False
 
 
-def exec(img_path):
-    global running
-    running = True
+def run(img_path):
     proc = subprocess.Popen(config.exec_path, stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-    timeoutThread = threading.Thread(target=timeoutHandle, args=(proc,)).start()
+    timeoutThread = TimeOutThread(proc)
+    timeoutThread.start()
     start = time.time()
-    out, _ = proc.communicate(img_path.encode(), 4)
+    out, _ = proc.communicate(img_path.encode())
     end = time.time()
-    running = False
+    timeoutThread.running = False
     out = out.decode().split('\n')
 
     nodes_len = int(out[0])
@@ -29,7 +26,7 @@ def exec(img_path):
     for i in range(edges_len):
         es_a.append([int(x) for x in out[i + nodes_len + 2].split(' ')])
 
-    return end-start, ns_a, es_a
+    return end - start, ns_a, es_a
 
 
 def errorMsg(msg):
@@ -37,9 +34,16 @@ def errorMsg(msg):
         window.evaluate_js(f"window.errorMsg('{msg}')")
 
 
-def timeoutHandle(proc):
-    time.sleep(5)
-    if running:
-        proc.terminate()
-        errorMsg('程序运行超时！')
-        print('Proc run timeout')
+class TimeOutThread(threading.Thread):
+    running = True
+
+    def __init__(self, proc):
+        super().__init__()
+        self.proc = proc
+
+    def run(self):
+        time.sleep(5)
+        if self.running:
+            self.proc.terminate()
+            errorMsg('程序运行超时！')
+            print('Proc run timeout')

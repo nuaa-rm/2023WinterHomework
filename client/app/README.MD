@@ -4,7 +4,7 @@
 1. 安装python依赖前需要安装数个系统级依赖，对于ubuntu，可以执行
    ```bash
    sudo apt install python3-pip python3-dev python3-gi python3-gi-cairo \
-                    gir1.2-gtk-3.0 libwebkit2gtk
+                    gir1.2-gtk-3.0 libwebkit2gtk python3-tk
    ```
 2. 安装依赖
     ```bash
