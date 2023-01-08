@@ -5,8 +5,8 @@ import cv2
 import numpy as np
 
 point2pixel = 100  # 两地图点之间的像素距离
-pSize = (6, 6)  # 地图尺寸（同时决定最多存在的点的数目
-pNumber = 30  # 点数量（最终可能由于无解少于此设置数量）
+pSize = (4, 4)  # 地图尺寸（同时决定最多存在的点的数目
+pNumber = 15  # 点数量（最终可能由于无解少于此设置数量）
 ek = 5  # 边数量系数，越小边越多， [4, 15]
 
 eNumber = round(random.random() * pNumber ** 2 / 10) + pNumber
