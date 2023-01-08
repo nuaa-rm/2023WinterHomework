@@ -60,6 +60,7 @@ def update(version):
                 try:
                     from app import app
                 except Exception:
+                    shutil.rmtree(appPath)
                     traceback.print_exc()
                     return 3
                 return 0
