@@ -1,3 +1,5 @@
+import traceback
+
 from . import procExec
 
 import os
@@ -29,13 +31,17 @@ def compute(img_path):
     cv2.imwrite(img_path, img)
 
     _, ns_a, es_a = procExec.run(img_path)
-    es = [[[round(it) for it in ns_a[i]] for i in _e] for _e in es_a]
+    ns = [[round(it) for it in point] for point in ns_a]
+    es = [[ns[i] for i in _e] for _e in es_a]
 
     for i in range(len(es_a)):
-        canvas = np.ones(img.shape) * 255
-        drawEdges(canvas, es[:i+1])
-        drawPoints(canvas, ns_a)
-        drawArrow(canvas, es[i])
-        cv2.imwrite(os.path.join(imagesPath, 'output%i.png' % i), canvas)
+        try:
+            canvas = np.ones(img.shape) * 255
+            drawEdges(canvas, es[:i+1])
+            drawPoints(canvas, ns)
+            drawArrow(canvas, es[i])
+            cv2.imwrite(os.path.join(imagesPath, 'output%i.png' % i), canvas)
+        except:
+            traceback.print_exc()
 
     return len(es_a) - 1
