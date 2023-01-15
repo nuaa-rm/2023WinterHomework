@@ -1,4 +1,4 @@
-from . import generator, judge, draw, procExec
+from . import generator, judge, draw, procExec, online
 
 import os
 import shutil
@@ -59,9 +59,20 @@ def stepCompute():
     return draw.compute(path)
 
 
+def login():
+    return online.login()
+
+
+def getName():
+    _, ak = online.initAkSession()
+    if ak is None:
+        return None
+    return online.getName(ak)
+
+
 def run():
     window = webview.create_window('CKYF 2023WH', launchPath, height=820, width=1280,
                                    resizable=True, frameless=True, transparent=True, easy_drag=False)
     procExec.window = window
-    window.expose(closeWindowCreator(window), minimizeWindowCreator(window), localCompute, stepCompute)
-    webview.start(gui='gtk', http_server=True, debug=True)
+    window.expose(closeWindowCreator(window), minimizeWindowCreator(window), localCompute, stepCompute, login, getName)
+    webview.start(gui='gtk', http_server=True)

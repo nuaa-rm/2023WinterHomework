@@ -4,6 +4,7 @@ import {MinusOutlined, CloseOutlined, CaretRightOutlined, GatewayOutlined, Pictu
 import {closeWindow, minimizeWindow, localCompute} from "./utils";
 import Local from "./local";
 import Picture from "./picture";
+import Online from "./online";
 import './border.css'
 
 const {Header} = Layout;
@@ -108,7 +109,7 @@ class App extends Component {
                                 <Tooltip placement="right" title="运行" >
                                     <Button type="text" icon={<CaretRightOutlined style={{fontSize: 20}} />} style={{
                                         margin: 8
-                                    }} onClick={()=>this.compute()}/>
+                                    }} onClick={()=>this.compute()} disabled={this.state.tabKey==='3'}/>
                                 </Tooltip>
                         }}
                         items={[
@@ -134,8 +135,7 @@ class App extends Component {
                                         <RedEnvelopeOutlined style={{fontSize: 20}} />
                                     </Tooltip>,
                                 key: '3',
-                                children: `Content of Tab Pane 3`,
-                                disabled: true
+                                children: <Online />,
                             },
                         ]}
                     />

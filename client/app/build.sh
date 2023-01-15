@@ -14,10 +14,10 @@ done
 rm -rf build __pycache__
 rm -f ./*.c ./*.html updater.py
 cd app
-easycython app.py generator.py judge.py draw.py procExec.py
+easycython app.py generator.py judge.py draw.py procExec.py online.py
 for i in ./*.so; do
     mv "$i" "${i%%cpython*}so"
 done
 rm -rf build __pycache__
-rm -f ./*.c ./*.html app.py generator.py judge.py draw.py procExec.py
+rm -f ./*.c ./*.html app.py generator.py judge.py draw.py procExec.py online.py
 rm -f static/images/*

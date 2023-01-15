@@ -13,3 +13,19 @@ export function localCompute(e) {
 export function stepCompute(e) {
     return window?.pywebview?.api?.stepCompute(e)
 }
+
+// function sleep(time) {
+//     return new Promise((resolve, _) => {
+//         setTimeout(()=>{
+//             resolve()
+//         }, time)
+//     })
+// }
+
+export function login() {
+    return window?.pywebview?.api?.login()
+}
+
+export function getName() {
+    return window?.pywebview?.api?.getName()
+}
