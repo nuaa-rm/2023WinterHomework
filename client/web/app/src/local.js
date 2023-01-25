@@ -28,6 +28,7 @@ class Local extends Component {
     finishComputeCreator() {
         const that = this;
         return result => {
+            console.log(result)
             that.setState({loading: false, result, t: new Date().getTime()})
         }
     }

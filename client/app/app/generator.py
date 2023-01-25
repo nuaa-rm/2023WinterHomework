@@ -101,17 +101,15 @@ def p2p(point):
     return int(point[0] * point2pixel + point2pixel / 2), int(point[1] * point2pixel + point2pixel / 2)
 
 
-def drawEdges(img, edges):
+def drawEdges(img, edges, nodes):
     for edge in edges:
-        cv2.line(img, p2p(edge[0]), p2p(edge[1]), (211, 204, 255), 12)
+        cv2.line(img, nodes[edge[0]], nodes[edge[1]], (211, 204, 255), 12)
 
 
 def drawPoints(img, points):
-    for i in range(len(points)):
-        if isUsed[i]:
-            point = points[i]
-            cv2.circle(img, p2p(point), 15, (102, 55, 243), -1)
-            cv2.circle(img, p2p(point), 5, (255, 255, 255), -1)
+    for point in points:
+        cv2.circle(img, point, 15, (102, 55, 243), -1)
+        cv2.circle(img, point, 5, (255, 255, 255), -1)
 
 
 def generateImage(_pSize=(3, 3), _pNumber=9, _ek=5, _point2pixel=100):
@@ -125,9 +123,6 @@ def generateImage(_pSize=(3, 3), _pNumber=9, _ek=5, _point2pixel=100):
         return 0
     ps = roundPMap()
     es = roundEdges(ps[0])
-    _image = np.ones((pSize[0] * point2pixel, pSize[1] * point2pixel, 3), np.uint8) * 255
-    drawEdges(_image, es)
-    drawPoints(_image, ps[0])
     pss = []
     ess = []
     remap = [-1] * len(ps[0])
@@ -140,4 +135,7 @@ def generateImage(_pSize=(3, 3), _pNumber=9, _ek=5, _point2pixel=100):
     for edge in es:
         if not samePoint(edge[0], edge[1]):
             ess.append((remap[ps[1][edge[0][0]][edge[0][1]]], remap[ps[1][edge[1][0]][edge[1][1]]]))
+    _image = np.ones((pSize[0] * point2pixel, pSize[1] * point2pixel, 3), np.uint8) * 255
+    drawEdges(_image, ess, pss)
+    drawPoints(_image, pss)
     return _image, {'nodes': pss, 'edges': ess}

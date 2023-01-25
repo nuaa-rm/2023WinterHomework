@@ -36,10 +36,12 @@ def getLocalVersion():
 
 
 def msgHook(window: webview.Window, msg):
+    print(msg)
     window.evaluate_js(f"window.msgHook('{msg}')")
 
 
 def warnHook(window: webview.Window, msg):
+    print(msg)
     window.evaluate_js(f"window.statusHook(1, '{msg}')")
 
 

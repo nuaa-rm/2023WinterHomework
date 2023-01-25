@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
-import { Row, Col, Card, Space, Button, Empty } from "antd";
+import {Row, Col, Card, Space, Button, Empty, Modal} from "antd";
 import { LeftOutlined, RightOutlined } from "@ant-design/icons";
-import { stepCompute } from "./utils";
+import {stepCompute} from "./utils";
 import './border.css'
 
 class Picture extends Component {
@@ -11,8 +11,16 @@ class Picture extends Component {
         const that = this;
         return async () => {
             that.setState({loading: true})
-            const maxStep = await stepCompute()
-            that.setState({maxStep, nowStep: 0, t1: new Date().getTime(), loading: false})
+            try {
+                const maxStep = await stepCompute()
+                that.setState({maxStep, nowStep: 0, t1: new Date().getTime(), loading: false})
+            } catch (_) {
+                Modal.error({
+                    title: '出错啦',
+                    content: '程序运行时出现错误'
+                })
+                that.setState({maxStep: 0, nowStep: 0, t1: new Date().getTime(), loading: false})
+            }
         }
     }
 

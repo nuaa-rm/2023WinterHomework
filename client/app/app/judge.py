@@ -51,6 +51,8 @@ def edgesCompare(es1, es2):
 
 
 def isEdgesContinuity(es):
+    if len(es) <= 1:
+        return False
     ok = True
     last = es[0][1]
     for e in es[1:]:
@@ -69,6 +71,7 @@ def drawPoints(img, pss):
     for p in _right:
         cv2.circle(img, p, 15, (102, 55, 243), -1)
     for p in _left:
+        cv2.circle(img, p, 15, (102, 55, 243), -1)
         cv2.circle(img, p, 12, (255, 255, 255), -1)
 
 
@@ -98,15 +101,25 @@ def judge(img_path, answer):
 
 
 def result2dict(runtime, answer, nss, ess, ns_a, es_a, continuity):
-    return {
+    data = {
         'time': '%.4fs' % runtime,
         'co': continuity,
         'ok': continuity and len(ess[1]) == 0 and len(ess[2]) == 0 and len(nss[1]) == 0 and len(nss[2]) == 0,
         'nr': '%.2f%%' % (float(len(nss[0])) / float(len(answer['nodes'])) * 100.),
-        'np': '%.2f%%' % (float(len(nss[0])) / float(len(ns_a)) * 100.),
         'er': '%.2f%%' % (float(len(ess[0])) / float(len(answer['edges'])) * 100.),
-        'ep': '%.2f%%' % (float(len(ess[0])) / float(len(es_a)) * 100.),
     }
+
+    if len(ns_a) != 0:
+        data['np'] = '%.2f%%' % (float(len(nss[0])) / float(len(ns_a)) * 100.)
+    else:
+        data['np'] = 'NaN%'
+
+    if len(es_a) != 0:
+        data['ep'] = '%.2f%%' % (float(len(ess[0])) / float(len(es_a)) * 100.)
+    else:
+        data['ep'] = 'NaN%'
+
+    return data
 
 
 def printResult(runtime, answer, nss, ess, ns_a, es_a, continuity):
@@ -117,10 +130,13 @@ def printResult(runtime, answer, nss, ess, ns_a, es_a, continuity):
         for p in nss[1]:
             print('\t(%i, %i)' % (p[0], p[1]))
 
-    print('Nodes Precision: %.2f%%' % (len(nss[0]) / len(ns_a) * 100))
-    if len(nss[2]) > 0:
-        for p in nss[2]:
-            print('\t(%i, %i)' % (p[0], p[1]))
+    if len(ns_a) != 0:
+        print('Nodes Precision: %.2f%%' % (len(nss[0]) / len(ns_a) * 100))
+        if len(nss[2]) > 0:
+            for p in nss[2]:
+                print('\t(%i, %i)' % (p[0], p[1]))
+    else:
+        print('Nodes Precision: NaN%')
 
     print('Edges Recall: %.2f%%' % (len(ess[0]) / len(answer['edges']) * 100))
     if len(ess[1]) > 0:
@@ -128,10 +144,14 @@ def printResult(runtime, answer, nss, ess, ns_a, es_a, continuity):
             print('\t%s -> %s' %
                   tuple([str(list(int((answer['nodes'][e[i]][j] - 50) / 100) for j in range(2))) for i in range(2)]))
 
-    print('Edges Precision: %.2f%%' % (len(ess[0]) / len(es_a) * 100))
-    if len(ess[2]) > 0:
-        for e in ess[2]:
-            print('\t%s -> %s' %
-                  tuple([str(list(int((answer['nodes'][e[i]][j] - 50) / 100) for j in range(2))) for i in range(2)]))
+    if len(es_a) != 0:
+        print('Edges Precision: %.2f%%' % (len(ess[0]) / len(es_a) * 100))
+        if len(ess[2]) > 0:
+            for e in ess[2]:
+                print('\t%s -> %s' %
+                      tuple(
+                          [str(list(int((answer['nodes'][e[i]][j] - 50) / 100) for j in range(2))) for i in range(2)]))
+    else:
+        print('Edges Precision: NaN%')
 
     print('Is edges continuity: %s' % continuity)

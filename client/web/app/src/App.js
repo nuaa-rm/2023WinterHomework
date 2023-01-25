@@ -24,8 +24,16 @@ class App extends Component {
         if (that.state.tabKey === '1') {
             const data = that.localTestRef?.current?.startComputeCreator()()
             console.log(data)
-            const result = await localCompute(data)
-            that.localTestRef?.current?.finishComputeCreator()(result)
+            try {
+                const result = await localCompute(data)
+                that.localTestRef?.current?.finishComputeCreator()(result)
+            } catch (_) {
+                Modal.error({
+                    title: '出错啦',
+                    content: '程序运行时出现错误'
+                })
+                that.localTestRef?.current?.finishComputeCreator()(null)
+            }
         } else if (that.state.tabKey === '2') {
             await that.pictureTestRef?.current?.startComputeCreator()()
         } else if (that.state.tabKey === '3') {

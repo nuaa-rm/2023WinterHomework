@@ -1,3 +1,5 @@
+import traceback
+
 from . import generator, judge, draw, procExec, online
 
 import os
@@ -75,4 +77,4 @@ def run():
                                    resizable=True, frameless=True, transparent=True, easy_drag=False)
     procExec.window = window
     window.expose(closeWindowCreator(window), minimizeWindowCreator(window), localCompute, stepCompute, login, getName)
-    webview.start(gui='gtk', http_server=True)
+    webview.start(gui='gtk', http_server=True, debug=True)

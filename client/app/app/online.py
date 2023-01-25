@@ -50,7 +50,10 @@ def verifyLogin(session, nonce):
 
 
 def _getAK(session, refreshKey):
-    res = session.get(f'{endPoint}/refreshToken', params={'token': refreshKey}).json()
+    res = session.get(f'{endPoint}/refreshToken', params={'token': refreshKey})
+    if res.status_code != 200:
+        return None
+    res = res.json()
     refreshKey = res['refresh']
     saveRefreshToken(refreshKey)
     return res['access']
@@ -62,6 +65,8 @@ def initAkSession():
         return None, None
     session = initSession()
     _ak = _getAK(session, refreshKey)
+    if _ak is None:
+        return None, None
     return initSession(_ak), _ak
 
 
