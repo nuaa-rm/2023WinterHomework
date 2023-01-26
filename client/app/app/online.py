@@ -1,5 +1,13 @@
 import requests
+import ntplib
+import numpy as np
+import cv2
 
+from typing import Dict, Union, List
+from threading import Thread
+from datetime import datetime
+import random
+import string
 import base64
 import traceback
 import webbrowser
@@ -7,15 +15,19 @@ import os
 import time
 import json
 
+import procExec
+import generator
+
 endPoint = 'https://api.auth.bismarck.xyz'
 webPoint = 'http://auth.bismarck.xyz'
 
 
 def initSession(jwt=None):
     session = requests.session()
-    session.headers = {'origin': webPoint}
     if jwt is not None:
-        session.headers['X-Token'] = jwt
+        session.headers = {'X-Token': jwt}
+    else:
+        session.headers = {'origin': webPoint}
     return session
 
 
@@ -110,6 +122,85 @@ def decodeJWT(jwt):
     return info
 
 
-def getName(jwt):
-    return decodeJWT(jwt)['name']
+def getTimeDelta():
+    ntp_clint = ntplib.NTPClient()
+    local_time = time.time()
+    internet_time = ntp_clint.request('pool.ntp.org').tx_time
+    return local_time - internet_time
 
+
+class Client:
+    name: str = None
+    session: Union[requests.Session, None]
+    clearLogin = lambda: print('auto login failed')
+    lobby: str
+    tasks = {}
+
+    class Task(Thread):
+        answer: Dict
+        img_path: str
+        runtime: datetime
+        tid: int
+
+        def __init__(self, tid, answer, runtime):
+            super().__init__()
+            self.tid = tid
+            self.answer = answer
+            self.runtime = runtime
+
+        def _getTimeDelta(self):
+            return (self.runtime - datetime.now()).total_seconds()
+
+        def generateImage(self):
+            _image = np.ones((self.answer['size'], self.answer['size'], 3), np.uint8) * 255
+            generator.drawEdges(_image, self.answer['ess'], self.answer['pss'])
+            generator.drawPoints(_image, self.answer['pss'])
+            fileName = ''.join(random.sample(string.ascii_letters + string.digits, 12))
+            self.img_path = os.path.join(os.path.dirname(__file__), f'static/images/{fileName}.png')
+            cv2.imwrite(self.img_path, _image)
+
+        def run(self) -> None:
+            time.sleep(self._getTimeDelta() - 5)
+            self.generateImage()
+            time.sleep(self._getTimeDelta() - 1)
+            res = procExec.run(self.img_path)
+            res = {'nodes': res[1], 'edges': res[2], 'runtime': res[0]}
+
+    def init(self):
+        self.session, ak = initAkSession()
+        if ak is not None:
+            self.name = decodeJWT(ak)['name']
+
+    def getName(self):
+        return self.name
+
+    def setClearLogin(self, func):
+        self.clearLogin = func
+
+    def _post(self, url, data: Union[str, Dict, List]):
+        if self.session is None:
+            self.clearLogin()
+            raise RuntimeError
+        if isinstance(data, str):
+            res = self.session.post(url, data=data.encode('ascii'))
+        else:
+            res = self.session.post(url, json=data)
+        if res.status_code == 401:
+            self.init()
+            return self._post(url, data)
+
+    def _get(self, url):
+        if self.session is None:
+            self.clearLogin()
+            raise RuntimeError
+        res = self.session.get(url)
+        if res.status_code == 401:
+            self.init()
+            return self._get(url)
+
+    def commitCreator(self):
+        def commit(tid, data):
+            pass
+
+
+client = Client()

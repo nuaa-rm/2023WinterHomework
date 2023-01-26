@@ -65,16 +65,27 @@ def login():
     return online.login()
 
 
-def getName():
-    _, ak = online.initAkSession()
-    if ak is None:
-        return None
-    return online.getName(ak)
+def initClientCreator(window):
+    def clearLogin():
+        window.evaluate_js("window.clearLogin()")
+
+    def initClient():
+        online.client.init()
+        online.client.setClearLogin(clearLogin)
+        return {'td': online.getTimeDelta(), 'name': online.client.getName()}
+    return initClient
 
 
 def run():
     window = webview.create_window('CKYF 2023WH', launchPath, height=820, width=1280,
                                    resizable=True, frameless=True, transparent=True, easy_drag=False)
     procExec.window = window
-    window.expose(closeWindowCreator(window), minimizeWindowCreator(window), localCompute, stepCompute, login, getName)
+    window.expose(
+        closeWindowCreator(window),
+        minimizeWindowCreator(window),
+        localCompute,
+        stepCompute,
+        login,
+        initClientCreator(window)
+    )
     webview.start(gui='gtk', http_server=True, debug=True)

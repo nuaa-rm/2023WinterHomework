@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, Union, List
 from datetime import datetime
 from enum import Enum
 
@@ -15,6 +15,12 @@ class TaskConfig(BaseModel):
     start: datetime
 
 
+class TaskAnswer(BaseModel):
+    runtime: float
+    nodes: List
+    edges: List
+
+
 class Task:
     result: Dict[str, Union[dict, None]] = {}
     createAt: datetime.now()
@@ -28,6 +34,7 @@ class Task:
 
     def __init__(self, config: TaskConfig):
         self.answer = generate(_pSize=[config.size] * 2, _pNumber=config.number, _ek=config.ek)
+        self.answer['size'] = config.size * 100
         self.startTime = config.start
 
     def getInfo(self, user):
