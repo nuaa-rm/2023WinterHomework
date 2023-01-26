@@ -30,7 +30,7 @@ def compute(img_path):
     img_path = os.path.join(imagesPath, 'input.png')
     cv2.imwrite(img_path, img)
 
-    _, ns_a, es_a = procExec.run(img_path)
+    _, ns_a, es_a, _ = procExec.run(img_path)
     ns = [[round(it) for it in point] for point in ns_a]
     es = [[ns[i] for i in _e] for _e in es_a]
 

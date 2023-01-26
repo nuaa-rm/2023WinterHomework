@@ -86,6 +86,7 @@ def run():
         localCompute,
         stepCompute,
         login,
-        initClientCreator(window)
+        initClientCreator(window),
+        *online.client.getFuncs()
     )
     webview.start(gui='gtk', http_server=True, debug=True)

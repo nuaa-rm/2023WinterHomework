@@ -15,11 +15,12 @@ import os
 import time
 import json
 
-import procExec
-import generator
+from . import procExec
+from . import generator
 
 endPoint = 'https://api.auth.bismarck.xyz'
 webPoint = 'http://auth.bismarck.xyz'
+appPoint = 'http://127.0.0.1:8002'
 
 
 def initSession(jwt=None):
@@ -129,42 +130,45 @@ def getTimeDelta():
     return local_time - internet_time
 
 
+class Task(Thread):
+    answer: Dict
+    img_path: str
+    runtime: datetime
+    tid: int
+
+    def __init__(self, tid, answer, runtime, committer):
+        super().__init__()
+        self.tid = tid
+        self.answer = answer
+        self.runtime = datetime.strptime(runtime, '%Y-%m-%d %H:%M:%S')
+        self.committer = committer
+
+    def _getTimeDelta(self):
+        return (self.runtime - datetime.now()).total_seconds()
+
+    def generateImage(self):
+        _image = np.ones((self.answer['size'], self.answer['size'], 3), np.uint8) * 255
+        generator.drawEdges(_image, self.answer['ess'], self.answer['pss'])
+        generator.drawPoints(_image, self.answer['pss'])
+        fileName = ''.join(random.sample(string.ascii_letters + string.digits, 12))
+        self.img_path = os.path.join(os.path.dirname(__file__), f'static/images/{fileName}.png')
+        cv2.imwrite(self.img_path, _image)
+
+    def run(self) -> None:
+        time.sleep(self._getTimeDelta() - 5)
+        self.generateImage()
+        time.sleep(self._getTimeDelta())
+        res = procExec.run(self.img_path)
+        res = {'runtime': res[0], 'nodes': res[1], 'edges': res[2], 'ok': res[3]}
+        self.committer(self.tid, res)
+
+
 class Client:
     name: str = None
     session: Union[requests.Session, None]
     clearLogin = lambda: print('auto login failed')
     lobby: str
-    tasks = {}
-
-    class Task(Thread):
-        answer: Dict
-        img_path: str
-        runtime: datetime
-        tid: int
-
-        def __init__(self, tid, answer, runtime):
-            super().__init__()
-            self.tid = tid
-            self.answer = answer
-            self.runtime = runtime
-
-        def _getTimeDelta(self):
-            return (self.runtime - datetime.now()).total_seconds()
-
-        def generateImage(self):
-            _image = np.ones((self.answer['size'], self.answer['size'], 3), np.uint8) * 255
-            generator.drawEdges(_image, self.answer['ess'], self.answer['pss'])
-            generator.drawPoints(_image, self.answer['pss'])
-            fileName = ''.join(random.sample(string.ascii_letters + string.digits, 12))
-            self.img_path = os.path.join(os.path.dirname(__file__), f'static/images/{fileName}.png')
-            cv2.imwrite(self.img_path, _image)
-
-        def run(self) -> None:
-            time.sleep(self._getTimeDelta() - 5)
-            self.generateImage()
-            time.sleep(self._getTimeDelta() - 1)
-            res = procExec.run(self.img_path)
-            res = {'nodes': res[1], 'edges': res[2], 'runtime': res[0]}
+    tasks: Dict[int, Task] = {}
 
     def init(self):
         self.session, ak = initAkSession()
@@ -177,17 +181,17 @@ class Client:
     def setClearLogin(self, func):
         self.clearLogin = func
 
-    def _post(self, url, data: Union[str, Dict, List]):
+    def _post(self, url, data: Union[Dict, List, str]):
         if self.session is None:
             self.clearLogin()
             raise RuntimeError
-        if isinstance(data, str):
-            res = self.session.post(url, data=data.encode('ascii'))
-        else:
-            res = self.session.post(url, json=data)
+        if not isinstance(data, str):
+            data = json.dumps(data)
+        res = self.session.post(url, json=data)
         if res.status_code == 401:
             self.init()
             return self._post(url, data)
+        return res.json()
 
     def _get(self, url):
         if self.session is None:
@@ -197,10 +201,79 @@ class Client:
         if res.status_code == 401:
             self.init()
             return self._get(url)
+        return res.json()
 
-    def commitCreator(self):
+    def _commitCreator(self):
         def commit(tid, data):
-            pass
+            res = self._post(appPoint + f'/lobby/{self.lobby}/{tid}/commit', data)
+            if res['code'] != 0 and res['code'] != 2:
+                raise RuntimeError
+        return commit
+
+    def _createLobbyCreator(self):
+        def createLobby():
+            res = self._get(appPoint + '/lobby/create')
+            self.lobby = res['lid']
+            return self.lobby
+        return createLobby
+
+    def _changeLobbyCreator(self):
+        def changeLobby(lid):
+            self.lobby = lid
+        return changeLobby
+
+    def _getUsersCreator(self):
+        def getUsers():
+            res = self._get(appPoint + f'/lobby/{self.lobby}/users')
+            return res['data']
+        return getUsers
+
+    def _getAdminCreator(self):
+        def getAdmin():
+            res = self._get(appPoint + f'/lobby/{self.lobby}/admin')
+            return res['data']
+        return getAdmin
+
+    def _createTaskCreator(self):
+        def createTask(config):
+            res = self._post(appPoint + f'/lobby/{self.lobby}/createTask', config)
+            if res['code'] != 0:
+                raise RuntimeError
+        return createTask
+
+    def _deleteTaskCreator(self):
+        def deleteTask(tid):
+            res = self._get(appPoint + f'/lobby/{self.lobby}/{tid}/delete')
+            if res['code'] != 0:
+                raise RuntimeError
+        return deleteTask
+
+    def _refreshTaskCreator(self):
+        def refreshTask():
+            res = self._post(appPoint + f'/lobby/{self.lobby}/tasks', list(self.tasks.keys()))
+            for tid, info in res['data']['new'].items():
+                self.tasks[tid] = Task(tid, info['answer'], info['start'], self._commitCreator())
+                self.tasks[tid].start()
+            return res['data']['data']
+        return refreshTask
+
+    def _refreshResultCreator(self):
+        def refreshResult(tid):
+            res = self._get(appPoint + f'/lobby/{self.lobby}/{tid}/result')
+            return res['data']
+        return refreshResult
+
+    def getFuncs(self):
+        return [
+            self._createLobbyCreator(),
+            self._changeLobbyCreator(),
+            self._getUsersCreator(),
+            self._getAdminCreator(),
+            self._createTaskCreator(),
+            self._deleteTaskCreator(),
+            self._refreshTaskCreator(),
+            self._refreshResultCreator()
+        ]
 
 
 client = Client()

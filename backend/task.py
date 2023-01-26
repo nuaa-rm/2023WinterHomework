@@ -19,6 +19,7 @@ class TaskAnswer(BaseModel):
     runtime: float
     nodes: List
     edges: List
+    ok: bool
 
 
 class Task:
@@ -44,7 +45,7 @@ class Task:
             'name': user['name'],
             'progress': 'Processing'
         }
-        return self.answer
+        return {'answer': self.answer, 'start': self.startTime.strftime('%Y-%m-%d %H:%M:%S')}
 
     def commit(self, data: Dict, user: Dict):
         if datetime.now() < self.startTime:

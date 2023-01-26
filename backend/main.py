@@ -10,7 +10,7 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from depends import getUser, getLobby
 from lobby import Lobby
-from task import TaskConfig
+from task import TaskConfig, TaskAnswer
 from host import host
 
 app = FastAPI(
@@ -45,9 +45,14 @@ async def createLobby(request: Request, user: Dict = Depends(getUser)):
     return {'code': 0, 'lid': lid}
 
 
-@app.get('/lobby/{lid}/getUsers', dependencies=[Depends(getUser)])
+@app.get('/lobby/{lid}/users', dependencies=[Depends(getUser)])
 async def getLobbyUsers(lobby: Lobby = Depends(getLobby)):
     return {'code': 0, 'data': lobby.getUserList()}
+
+
+@app.get('/lobby/{lid}/admin', dependencies=[Depends(getUser)])
+async def getLobbyAdmin(lobby: Lobby = Depends(getLobby)):
+    return {'code': 0, 'data': lobby.admin}
 
 
 @app.post('/lobby/{lid}/createTask')
@@ -74,7 +79,7 @@ async def deleteTask(
     return {'code': 0}
 
 
-@app.post('/lobby/{lid}/{tid}/tasks')
+@app.post('/lobby/{lid}/tasks')
 async def refreshTask(
         info: List[int] = Body(),
         user: Dict = Depends(getUser),
@@ -85,13 +90,11 @@ async def refreshTask(
 
 @app.post('/lobby/{lid}/{tid}/commit')
 async def commitResult(
-        request: Request,
         tid: int,
+        data: TaskAnswer,
         user: Dict = Depends(getUser),
         lobby: Lobby = Depends(getLobby)
 ):
-    data = await request.body()
-    data = data.decode('ascii')
     res = lobby.commitResult(tid, data, user)
     return {'code': res.value, 'msg': res.name}
 
@@ -104,5 +107,4 @@ async def refreshTask(
         user: Dict = Depends(getUser),
         lobby: Lobby = Depends(getLobby)
 ):
-    lobby.refreshResult(tid, user)
-    return {'code': 0}
+    return {'code': 0, 'data': lobby.refreshResult(tid, user)}
