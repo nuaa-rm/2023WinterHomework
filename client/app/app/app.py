@@ -4,7 +4,6 @@ from . import generator, judge, draw, procExec, online
 
 import os
 import shutil
-from tkinter import filedialog
 
 
 import cv2
@@ -57,9 +56,15 @@ def localCompute(req):
     return result
 
 
-def stepCompute():
-    path = filedialog.askopenfilename(title='选择要识别的图片', filetypes=[('png images', '*.png'), ('jpg images', '*.jpg')])
-    return draw.compute(path)
+def stepComputeCreator(window):
+    def stepCompute():
+        file_types = ('Image Files (*.bmp;*.jpg;*.gif;*.png)',)
+        path = window.create_file_dialog(webview.OPEN_DIALOG, file_types=file_types)
+        try:
+            return draw.compute(path[0])
+        except:
+            return 0
+    return stepCompute
 
 
 def login():
@@ -90,7 +95,7 @@ def run():
         closeWindowCreator(window),
         minimizeWindowCreator(window),
         localCompute,
-        stepCompute,
+        stepComputeCreator(window),
         login,
         initClientCreator(window),
         *online.client.getFuncs()

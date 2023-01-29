@@ -26,6 +26,6 @@ export function login() {
     return window?.pywebview?.api?.login()
 }
 
-export function getName() {
-    return window?.pywebview?.api?.getName()
+export function initClient() {
+    return window?.pywebview?.api?.initClient()
 }

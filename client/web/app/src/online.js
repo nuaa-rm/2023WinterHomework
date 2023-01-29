@@ -1,6 +1,6 @@
-import { Button, Result, Spin, Modal} from "antd";
+import { Button, Result, Spin, Modal } from "antd";
 import React, {Component} from 'react';
-import { login, getName } from "./utils";
+import { login, initClient } from "./utils";
 import './border.css'
 
 class Online extends Component {
@@ -9,11 +9,34 @@ class Online extends Component {
     async login() {
         const that = this
         that.setState({loginLoading: true})
+        Modal.info({
+            title: '请在打开的浏览器窗口中完成登陆',
+            content: (
+                <div>
+                    如果浏览器窗口没有正常打开，请在终端中复制链接后到浏览器中打开
+                </div>
+            )
+        })
         const code = await login()
         if (code === 0) {
-            getName().then(v=>{
-                that.setState({name: v, loading: false, loginLoading: false})
-            })
+            try {
+                initClient().then(v=>{
+                    if (v.td > 5) {
+                        Modal.error({
+                            title: '出错啦',
+                            content: '本地时间与服务器时间相差过多，请重新同步时间'
+                        })
+                    } else {
+                        Modal.destroyAll()
+                        that.setState({name: v.name, loading: false, loginLoading: false})
+                    }
+                })
+            } catch (_) {
+                Modal.error({
+                    title: '出错啦',
+                    content: '程序运行时出现错误'
+                })
+            }
         } else if (code === 11) {
             Modal.error({
                 title: '出错啦！',
@@ -25,9 +48,23 @@ class Online extends Component {
 
     componentDidMount() {
         const that = this
-        getName().then(v=>{
-            that.setState({name: v, loading: false, loginLoading: false})
-        })
+        try {
+            initClient().then(v=>{
+                if (v.td > 5) {
+                    Modal.error({
+                        title: '出错啦',
+                        content: '本地时间与服务器时间相差过多，请重新同步时间'
+                    })
+                } else {
+                    that.setState({name: v.name, loading: false, loginLoading: false})
+                }
+            })
+        } catch (_) {
+            Modal.error({
+                title: '出错啦',
+                content: '程序运行时出现错误'
+            })
+        }
     }
 
     render() {
