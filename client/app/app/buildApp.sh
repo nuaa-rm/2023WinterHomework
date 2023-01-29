@@ -8,4 +8,4 @@ for i in ./*.so; do
 done
 rm -rf build
 rm -f ./*.c ./*.html app.py generator.py judge.py draw.py procExec.py online.py
-pip3 install requests
+pip3 install requests ntplib

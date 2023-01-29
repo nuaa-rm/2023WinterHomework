@@ -43,8 +43,9 @@ def getNonce(session):
 def loginTrigger(nonce):
     print('We will use your browser link below to login')
     print('If your browser don\'t automatically, please copy it to your browser and open')
-    print(f'{webPoint}/#/?mode=device&app=视觉组寒假作业&nonce={nonce}')
-    webbrowser.open(f'{webPoint}/#/?mode=device&app=视觉组寒假作业&nonce={nonce}')
+    login_link = f'{webPoint}/#/?mode=device&app=视觉组寒假作业&nonce={nonce}'
+    print(login_link)
+    webbrowser.open(login_link)
 
 
 def verifyLogin(session, nonce):

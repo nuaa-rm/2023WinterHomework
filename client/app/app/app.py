@@ -6,6 +6,7 @@ import os
 import shutil
 from tkinter import filedialog
 
+
 import cv2
 import webview
 
@@ -72,7 +73,12 @@ def initClientCreator(window):
     def initClient():
         online.client.init()
         online.client.setClearLogin(clearLogin)
-        return {'td': online.getTimeDelta(), 'name': online.client.getName()}
+        try:
+            td = online.getTimeDelta()
+        except:
+            td = online.getTimeDelta()
+        print('cline init!')
+        return {'td': td, 'name': online.client.getName()}
     return initClient
 
 
