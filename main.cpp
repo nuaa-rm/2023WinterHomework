@@ -4,7 +4,7 @@
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <vector>
-#include <cmath>
+#include <utility>
 
 using namespace std;
 using namespace cv;
@@ -32,13 +32,44 @@ paint_line_if_color(const cv::Mat &image, const cv::Point &point1, const cv::Poi
     return lines;
 }
 
+int matrix_size, num_lines;
+vector<int> path;
+vector<vector<int>> edges;
+vector<vector<bool>> visited_edge;
+vector<int> target_path;
+
+bool backtrack(int u) {
+    if (path.size() == num_lines + 1) {
+        target_path = path;
+        return true;
+    }
+    bool flag = false;
+    for (int i = 0; i < matrix_size; i++) {
+        if (edges[u][i] && !visited_edge[u][i] && !visited_edge[i][u]) {
+            path.push_back(i);
+            visited_edge[u][i] = true;
+            visited_edge[i][u] = true;
+            if (backtrack(i)) flag = true;
+            visited_edge[u][i] = false;
+            visited_edge[i][u] = false;
+            path.pop_back();
+        }
+    }
+    return flag;
+}
+
+void add(int a, int b) {
+    edges[a][b] = 1;
+    edges[b][a] = 1;
+}
+
 int main() {
     char img_path[80];
     cin >> img_path;
     Mat img = imread(img_path, IMREAD_UNCHANGED);
     int loc_max = 0;
     vector<Point> points;
-    std::vector<std::pair<cv::Point, cv::Point>> p;
+    std::vector<std::pair<cv::Point, cv::Point>> lines;
 
     Mat image = imread(img_path, IMREAD_GRAYSCALE);
     imshow("raw", image);
@@ -54,7 +85,7 @@ int main() {
     threshold(absdiff_img, threshold_img, 40, 255, THRESH_BINARY);
     Mat result;
     bitwise_not(threshold_img, result);
-    imshow("circles", result);
+//    imshow("circles", result);
 
     vector<Vec3f> circles;
     HoughCircles(result, circles, HOUGH_GRADIENT, 1, 10, 100, 15, 15, 30);
@@ -85,48 +116,65 @@ int main() {
         circle(img, Point(x, y), 2, Scalar(255, 255, 255), -1);
     }
     //查询circles的个数
-    int num = circles.size();
-    cout << num << endl;
+    int num_circles = circles.size();
+    cout << num_circles << endl;
+
+    matrix_size = num_circles;
+
+    edges.resize(matrix_size);
+    visited_edge.resize(matrix_size);
+    for (int i = 0; i < matrix_size; i++) {
+        edges[i].resize(matrix_size);
+        visited_edge[i].resize(matrix_size);
+    }
     //输出points元素x,y
-    for (int i = 0; i < num; i++) {
+    for (int i = 0; i < num_circles; i++) {
         cout << points[i].x << " " << points[i].y << endl;
     }
-    imshow("pink", img);
-
-    auto processed_points = std::vector<pair<cv::Point, cv::Point>>();
-
-
     for (int i = 0; i < points.size(); ++i) {
         for (int j = i + 1; j < points.size(); ++j) {
             auto painted_lines = paint_line_if_color(img, points[i], points[j], Vec3b(211, 204, 255));
-            p.insert(p.end(), painted_lines.begin(), painted_lines.end());
+            lines.insert(lines.end(), painted_lines.begin(), painted_lines.end());
         }
     }
-    int num_lines = p.size();
+    num_lines = lines.size();
     cout << num_lines << endl;
-    //输出p的所有元素
-    for (auto &i: p) {
-        for (int j = 0; j < num; ++j) {
+    //输出lines的所有元素
+    vector<int> list_1, list_2;
+    vector<int> list_num(num_circles, 0);
+    for (auto &i: lines) {
+        for (int j = 0; j < num_circles; ++j) {
             if (i.first.x == points[j].x && i.first.y == points[j].y) {
-                cout << j << " ";
+                list_1.emplace_back(j);
                 break;
             }
         }
-        for (int j = 0; j < num; ++j) {
+        for (int j = 0; j < num_circles; ++j) {
             if (i.second.x == points[j].x && i.second.y == points[j].y) {
-                cout << j << endl;
+                list_2.emplace_back(j);
                 break;
             }
         }
-        // cout << i.first.x << " " << i.first.y << " " << i.second.x << " " << i.second.y << endl;
     }
 
-
-    img = imread(img_path, IMREAD_UNCHANGED);
-    for (auto &i: p) {
-        line(img, i.first, i.second, Scalar(0, 255, 0), 2);
+    for (int i = 0; i < list_1.size(); ++i) {
+        add(list_1[i], list_2[i]);
+        list_num[list_1[i]]++;
+        list_num[list_2[i]]++;
     }
-    imshow("result", img);
-    destroyAllWindows();
+
+    for (int i = 0; i < num_circles; ++i) {
+        if (list_num[i] == 1 || list_num[i] == 3) {
+            path.clear();
+            path.push_back(i);
+            backtrack(i);
+            break;
+        }
+    }
+
+    for (int i = 0; i < target_path.size() - 1; ++i) {
+        cout << target_path[i] << " " << target_path[i + 1] << endl;
+    }
     return 0;
 }
+
