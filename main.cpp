@@ -66,7 +66,7 @@ void add(int a, int b) {
 int main() {
     char img_path[80];
     cin >> img_path;
-    Mat img = imread(img_path, IMREAD_UNCHANGED);
+    Mat img = cv::imread(img_path);
     int loc_max = 0;
     vector<Point> points;
     std::vector<std::pair<cv::Point, cv::Point>> lines;
@@ -131,6 +131,23 @@ int main() {
     for (int i = 0; i < num_circles; i++) {
         cout << points[i].x << " " << points[i].y << endl;
     }
+    Mat gray = imread(img_path, IMREAD_GRAYSCALE);
+    Mat edge_s;
+    //边缘检测
+    Canny(gray, edge_s, 50, 150);
+    // 检测直线
+    vector<Vec4i> line_s;
+    HoughLinesP(edge_s, line_s, 1, CV_PI / 1440, 20, 30, 10);
+    int thickness = 1;
+    // 在图像上绘制直线
+    for (auto l: line_s) {
+        line(img, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), thickness, LINE_AA);
+    }
+
+    // 显示图像
+    imshow("Detected Lines", img);
+    waitKey(0);
+
     for (int i = 0; i < points.size(); ++i) {
         for (int j = i + 1; j < points.size(); ++j) {
             auto painted_lines = paint_line_if_color(img, points[i], points[j], Vec3b(211, 204, 255));
