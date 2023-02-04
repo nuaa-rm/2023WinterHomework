@@ -9,6 +9,9 @@
 using namespace std;
 using namespace cv;
 
+cv::Scalar nodeColor[2]{cv::Scalar(100, 53, 241), cv::Scalar(104, 57, 245)};
+cv::Scalar edgeColor[2]{cv::Scalar(209, 202, 252), cv::Scalar(213, 206, 255)};
+
 std::vector<std::pair<cv::Point, cv::Point>>
 paint_line_if_color(const cv::Mat &image, const cv::Point &point1, const cv::Point &point2, const cv::Vec3b &color) {
     std::vector<std::pair<cv::Point, cv::Point>> lines = {};
@@ -66,25 +69,14 @@ int main() {
     int loc_max = 0;
     vector<Point> points;
     std::vector<std::pair<cv::Point, cv::Point>> lines;
-
-    Mat image = imread(img_path, IMREAD_GRAYSCALE);
-    imshow("raw", image);
-    Mat kernel = getStructuringElement(MORPH_RECT, Size(3, 3));
-    Mat dilate_img;
-    dilate(image, dilate_img, kernel);
-    Mat erode_img;
-    erode(image, erode_img, kernel);
-
-    Mat absdiff_img;
-    absdiff(dilate_img, erode_img, absdiff_img);
-    Mat threshold_img;
-    threshold(absdiff_img, threshold_img, 40, 255, THRESH_BINARY);
-    Mat result;
-    bitwise_not(threshold_img, result);
-//    imshow("circles", result);
+    Mat nodesMask, edgesMask;
+    cv::inRange(img, nodeColor[0], nodeColor[1], nodesMask);
+    cv::inRange(img, edgeColor[0], edgeColor[1], edgesMask);
+    imshow("nodes", nodesMask);
+    imshow("edges", edgesMask);
 
     vector<Vec3f> circles;
-    HoughCircles(result, circles, HOUGH_GRADIENT, 1, 10, 100, 15, 15, 30);
+    HoughCircles(nodesMask, circles, HOUGH_GRADIENT, 1, 10, 100, 15, 10, 40);
     // 绘制圆形包围框
     for (auto &i: circles) {
         // 圆的坐标
@@ -124,22 +116,21 @@ int main() {
     for (int i = 0; i < num_circles; i++) {
         cout << points[i].x << " " << points[i].y << endl;
     }
-    Mat gray = imread(img_path, IMREAD_GRAYSCALE);
     Mat edge_s;
     // 边缘检测
-    Canny(gray, edge_s, 50, 150);
+    Canny(edgesMask, edge_s, 50, 150);
     // 检测直线
     vector<Vec4i> line_s;
     HoughLinesP(edge_s, line_s, 1, CV_PI / 1440, 20, 30, 10);
     int thickness = 1;
     // 在图像上绘制直线
-//    for (auto l: line_s) {
-//        line(img, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), thickness, LINE_AA);
-//    }
+    for (auto l: line_s) {
+        line(img, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), thickness, LINE_AA);
+    }
 
     // 显示图像
     imshow("Detected Lines", img);
-//    waitKey(0);
+    waitKey(0);
 
     for (int i = 0; i < points.size(); ++i) {
         for (int j = i + 1; j < points.size(); ++j) {
