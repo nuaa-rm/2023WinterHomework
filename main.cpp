@@ -121,12 +121,9 @@ int main() {
 
     matrix_size = num_circles;
 
-    edges.resize(matrix_size);
-    visited_edge.resize(matrix_size);
-    for (int i = 0; i < matrix_size; i++) {
-        edges[i].resize(matrix_size);
-        visited_edge[i].resize(matrix_size);
-    }
+    edges = vector<vector<int>>(matrix_size, vector<int>(matrix_size, 0));
+    visited_edge = vector<vector<bool>>(matrix_size, vector<bool>(matrix_size, false));
+
     //输出points元素x,y
     for (int i = 0; i < num_circles; i++) {
         cout << points[i].x << " " << points[i].y << endl;
