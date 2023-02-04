@@ -133,7 +133,7 @@ int main() {
     }
     Mat gray = imread(img_path, IMREAD_GRAYSCALE);
     Mat edge_s;
-    //边缘检测
+    // 边缘检测
     Canny(gray, edge_s, 50, 150);
     // 检测直线
     vector<Vec4i> line_s;
@@ -160,25 +160,27 @@ int main() {
     vector<int> list_1, list_2;
     vector<int> list_num(num_circles, 0);
     for (auto &i: lines) {
+        int tmp_1, tmp_2;
         for (int j = 0; j < num_circles; ++j) {
             if (i.first.x == points[j].x && i.first.y == points[j].y) {
                 list_1.emplace_back(j);
+                tmp_1 = j;
                 break;
             }
         }
         for (int j = 0; j < num_circles; ++j) {
             if (i.second.x == points[j].x && i.second.y == points[j].y) {
                 list_2.emplace_back(j);
+                tmp_2 = j;
                 break;
             }
         }
+        edges[tmp_1][tmp_2] = 1;
+        edges[tmp_2][tmp_1] = 1;
+        list_num[tmp_1]++;
+        list_num[tmp_2]++;
     }
 
-    for (int i = 0; i < list_1.size(); ++i) {
-        add(list_1[i], list_2[i]);
-        list_num[list_1[i]]++;
-        list_num[list_2[i]]++;
-    }
 
     for (int i = 0; i < num_circles; ++i) {
         if (list_num[i] == 1 || list_num[i] == 3) {
