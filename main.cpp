@@ -5,6 +5,7 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 #include <utility>
+#include <unordered_map>
 
 using namespace std;
 using namespace cv;
@@ -33,6 +34,24 @@ paint_line_if_color(const cv::Mat &image, const cv::Point &point1, const cv::Poi
     // 如果所有像素的颜色都与特定的RGB颜色相同，则绘制蓝色的直线
     lines.emplace_back(point1, point2);
     return lines;
+}
+
+float angle(int x1, int y1, int x2, int y2) {
+    float angle_temp;
+    int xx, yy;
+    xx = x2 - x1;
+    yy = y2 - y1;
+    if (xx == 0.0)
+        angle_temp = M_PI / 2.0;
+    else
+        angle_temp = std::atan(std::fabs(yy / xx));
+    if ((xx < 0.0) && (yy >= 0.0))
+        angle_temp = M_PI - angle_temp;
+    else if ((xx < 0.0) && (yy < 0.0))
+        angle_temp = M_PI + angle_temp;
+    else if ((xx >= 0.0) && (yy < 0.0))
+        angle_temp = M_PI * 2.0 - angle_temp;
+    return (angle_temp);
 }
 
 int matrix_size, num_lines;
@@ -66,6 +85,7 @@ int main() {
     char img_path[80];
     cin >> img_path;
     Mat img = cv::imread(img_path);
+    Mat img_COPY = img;
     int loc_max = 0;
     vector<Point> points;
     std::vector<std::pair<cv::Point, cv::Point>> lines;
@@ -82,7 +102,6 @@ int main() {
         // 圆的坐标
         int x = i[0];
         int y = i[1];
-        int r = i[2];
         // 绘制圆形包围框
         if (x > loc_max) {
             loc_max = x;
@@ -100,8 +119,6 @@ int main() {
             }
         }
         points.emplace_back(x, y);
-        circle(img, Point(x, y), r + 2, Scalar(211, 204, 255), -1);
-        circle(img, Point(x, y), 2, Scalar(255, 255, 255), -1);
     }
     //查询circles的个数
     int num_circles = circles.size();
@@ -125,12 +142,48 @@ int main() {
     int thickness = 1;
     // 在图像上绘制直线
     for (auto l: line_s) {
-        line(img, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), thickness, LINE_AA);
+        line(img_COPY, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 0), thickness, LINE_AA);
+    }
+    // 显示图像
+    imshow("Detected Lines", img_COPY);
+    waitKey(0);
+    vector<float> angles;
+    unordered_map<float, vector<Point>> line_map;
+    for (int x = 0; x < points.size(); ++x) {
+        for (int y = x + 1; y < points.size(); ++y) {
+            float tmp_angle = angle(points[x].x, points[x].y, points[y].x, points[y].y);
+            angles.emplace_back(tmp_angle);
+            line_map[tmp_angle].push_back(points[x]);
+            line_map[tmp_angle].push_back(points[y]);
+        }
     }
 
-    // 显示图像
-    imshow("Detected Lines", img);
-    waitKey(0);
+    for (auto l: line_s) {
+        float tmp_angle = angle(l[0], l[1], l[2], l[3]);
+        for (auto &i: angles) {
+            if (abs(i - tmp_angle) < 0.001) {
+                for (int tmp = 0; tmp <= line_map[i].size(); tmp = tmp + 2) {
+                    int length;
+                    int m0 = (line_map[i][tmp].x - l[0]) * (line_map[i][tmp].x - l[0]) +
+                             (line_map[i][tmp].y - l[1]) * (line_map[i][tmp].y - l[1]);
+                    int n0 = (line_map[i][tmp + 1].x - l[2]) * (line_map[i][tmp + 1].x - l[2]) +
+                             (line_map[i][tmp + 1].y - l[3]) * (line_map[i][tmp + 1].y - l[3]);
+                    int m1 = (line_map[i][tmp].x - l[2]) * (line_map[i][tmp].x - l[2]) +
+                             (line_map[i][tmp].y - l[3]) * (line_map[i][tmp].y - l[3]);
+                    int n1 = (line_map[i][tmp + 1].x - l[0]) * (line_map[i][tmp + 1].x - l[0]) +
+                             (line_map[i][tmp + 1].y - l[1]) * (line_map[i][tmp + 1].y - l[1]);
+                    if(m0+n0>=m1+n1){
+                        length = m1+n1;
+                    } else {
+                        length = m0+n0;
+                    }
+
+                }
+            }
+        }
+
+    }
+
 
     for (int i = 0; i < points.size(); ++i) {
         for (int j = i + 1; j < points.size(); ++j) {
@@ -138,23 +191,22 @@ int main() {
             lines.insert(lines.end(), painted_lines.begin(), painted_lines.end());
         }
     }
+
+
     num_lines = lines.size();
     cout << num_lines << endl;
     //输出lines的所有元素
-    vector<int> list_1, list_2;
     vector<int> list_num(num_circles, 0);
     for (auto &i: lines) {
         int tmp_1, tmp_2;
         for (int j = 0; j < num_circles; ++j) {
             if (i.first.x == points[j].x && i.first.y == points[j].y) {
-                list_1.emplace_back(j);
                 tmp_1 = j;
                 break;
             }
         }
         for (int j = 0; j < num_circles; ++j) {
             if (i.second.x == points[j].x && i.second.y == points[j].y) {
-                list_2.emplace_back(j);
                 tmp_2 = j;
                 break;
             }
