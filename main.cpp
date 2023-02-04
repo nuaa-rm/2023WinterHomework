@@ -58,10 +58,6 @@ bool backtrack(int u) {
     return flag;
 }
 
-void add(int a, int b) {
-    edges[a][b] = 1;
-    edges[b][a] = 1;
-}
 
 int main() {
     char img_path[80];
@@ -137,13 +133,13 @@ int main() {
     HoughLinesP(edge_s, line_s, 1, CV_PI / 1440, 20, 30, 10);
     int thickness = 1;
     // 在图像上绘制直线
-    for (auto l: line_s) {
-        line(img, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), thickness, LINE_AA);
-    }
+//    for (auto l: line_s) {
+//        line(img, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 255), thickness, LINE_AA);
+//    }
 
     // 显示图像
     imshow("Detected Lines", img);
-    waitKey(0);
+//    waitKey(0);
 
     for (int i = 0; i < points.size(); ++i) {
         for (int j = i + 1; j < points.size(); ++j) {
@@ -180,7 +176,7 @@ int main() {
 
 
     for (int i = 0; i < num_circles; ++i) {
-        if (list_num[i] == 1 || list_num[i] == 3) {
+        if (list_num[i] % 2 == 1 || i == num_circles - 1) {
             path.clear();
             path.push_back(i);
             backtrack(i);
