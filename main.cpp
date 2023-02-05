@@ -6,8 +6,6 @@
 #include <vector>
 #include <utility>
 
-using namespace std;
-using namespace cv;
 
 cv::Scalar nodeColor[2]{cv::Scalar(100, 53, 241), cv::Scalar(104, 57, 245)};
 cv::Scalar edgeColor[2]{cv::Scalar(209, 202, 252), cv::Scalar(213, 206, 255)};
@@ -93,13 +91,13 @@ void add_to_vector_if_not_exists(std::vector<std::pair<cv::Point, cv::Point>> &l
 void compare_and_swap(int &x_0, int &y_0, int &x_1, int &y_1, bool flag) {
     if (flag == 0) {
         if (y_0 < y_1) {
-            swap(y_0, y_1);
-            swap(x_0, x_1);
+            std::swap(y_0, y_1);
+            std::swap(x_0, x_1);
         }
     } else {
         if (x_0 < x_1) {
-            swap(y_0, y_1);
-            swap(x_0, x_1);
+            std::swap(y_0, y_1);
+            std::swap(x_0, x_1);
         }
     }
 }
@@ -115,10 +113,10 @@ float get_length(int &x_0, int &y_0, int &x_1, int &y_1, int flag) {
 }
 
 int matrix_size, num_lines;
-vector<int> path;
-vector<vector<int>> edges;
-vector<vector<bool>> visited_edge;
-vector<int> target_path;
+std::vector<int> path;
+std::vector<std::vector<int>> edges;
+std::vector<std::vector<bool>> visited_edge;
+std::vector<int> target_path;
 
 bool backtrack(int u) {
     if (path.size() == num_lines + 1) {
@@ -143,17 +141,17 @@ bool backtrack(int u) {
 
 int main() {
     char img_path[80];
-    cin >> img_path;
-    Mat img = cv::imread(img_path);
+    std::cin >> img_path;
+    cv::Mat img = cv::imread(img_path);
     int loc_max = 0;
-    vector<Point> points;
+    std::vector<cv::Point> points;
     std::vector<std::pair<cv::Point, cv::Point>> lines;
-    Mat nodesMask, edgesMask;
+    cv::Mat nodesMask, edgesMask;
     cv::inRange(img, nodeColor[0], nodeColor[1], nodesMask);
     cv::inRange(img, edgeColor[0], edgeColor[1], edgesMask);
 
-    vector<Vec3f> circles;
-    HoughCircles(nodesMask, circles, HOUGH_GRADIENT, 1, 10, 100, 15, 10, 40);
+    std::vector<cv::Vec3f> circles;
+    HoughCircles(nodesMask, circles, cv::HOUGH_GRADIENT, 1, 10, 100, 15, 10, 40);
     // 绘制圆形包围框
     for (auto &i: circles) {
         // 圆的坐标
@@ -179,35 +177,35 @@ int main() {
     }
     //查询circles的个数
     int num_circles = circles.size();
-    cout << num_circles << endl;
+    std::cout << num_circles << std::endl;
 
     matrix_size = num_circles;
 
-    edges = vector<vector<int>>(matrix_size, vector<int>(matrix_size, 0));
-    visited_edge = vector<vector<bool>>(matrix_size, vector<bool>(matrix_size, false));
+    edges = std::vector<std::vector<int>>(matrix_size, std::vector<int>(matrix_size, 0));
+    visited_edge = std::vector<std::vector<bool>>(matrix_size, std::vector<bool>(matrix_size, false));
 
     //输出points元素x,y
     for (int i = 0; i < num_circles; i++) {
-        cout << points[i].x << " " << points[i].y << endl;
+        std::cout << points[i].x << " " << points[i].y << std::endl;
     }
-    Mat edge_s;
+    cv::Mat edge_s;
     // 边缘检测
     Canny(edgesMask, edge_s, 50, 150);
     // 检测直线
-    vector<Vec4i> line_s;
+    std::vector<cv::Vec4i> line_s;
     HoughLinesP(edge_s, line_s, 1, CV_PI / 1440, 50, 30, 15);
     int thickness = 1;
-    // 在图像上绘制直线
-    for (auto l: line_s) {
-        line(img, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 0), thickness, LINE_AA);
-    }
-    imshow("img",img);
+//    // 在图像上绘制直线
+//    for (auto l: line_s) {
+//        line(img, cv::Point(l[0], l[1]), cv::Point(l[2], l[3]), cv::Scalar(0, 0, 0), thickness, cv::LINE_AA);
+//    }
+    imshow("img", img);
     for (auto &l: line_s) {
         int minLength[6];
         for (int &i: minLength) {
             i = 999999;
         }
-        Point matchedPoint[6];
+        cv::Point matchedPoint[6];
         if (abs(l[0] - l[2]) <= 10) {
             l[0] = nearest_multiple(l[0]);
             l[2] = l[0];
@@ -229,7 +227,7 @@ int main() {
                 }
             }
             if (matchedPoint[0] != matchedPoint[1])
-                add_to_vector_if_not_exists(lines, make_pair(matchedPoint[0], matchedPoint[1]));
+                add_to_vector_if_not_exists(lines, std::make_pair(matchedPoint[0], matchedPoint[1]));
         } else if (abs(l[1] - l[3]) <= 10) {
             l[1] = nearest_multiple(l[1]);
             l[3] = l[1];
@@ -251,7 +249,7 @@ int main() {
                 }
             }
             if (matchedPoint[2] != matchedPoint[3])
-                add_to_vector_if_not_exists(lines, make_pair(matchedPoint[2], matchedPoint[3]));
+                add_to_vector_if_not_exists(lines, std::make_pair(matchedPoint[2], matchedPoint[3]));
         } else {
             compare_and_swap(l[0], l[1], l[2], l[3], true);
             get_parallel_lines(l, 20);
@@ -272,19 +270,19 @@ int main() {
                 }
             }
             if (matchedPoint[4] != matchedPoint[5])
-                add_to_vector_if_not_exists(lines, make_pair(matchedPoint[4], matchedPoint[5]));
+                add_to_vector_if_not_exists(lines, std::make_pair(matchedPoint[4], matchedPoint[5]));
         }
     }
-    for(auto &l:lines){
-        line(img, l.first, l.second, Scalar(0, 0, 255), thickness, LINE_AA);
+    for (auto &l: lines) {
+        line(img, l.first, l.second, cv::Scalar(0, 0, 255), thickness, cv::LINE_AA);
     }
-    imshow("img1",img);
-    waitKey(0);
+//    imshow("img1",img);
+//    cv::waitKey(0);
 
     num_lines = lines.size();
-    cout << num_lines << endl;
+    std::cout << num_lines << std::endl;
     //输出lines的所有元素
-    vector<int> list_num(num_circles, 0);
+    std::vector<int> list_num(num_circles, 0);
     for (auto &i: lines) {
         int tmp_1, tmp_2;
         for (int j = 0; j < num_circles; ++j) {
@@ -316,7 +314,7 @@ int main() {
     }
 
     for (int i = 0; i < target_path.size() - 1; ++i) {
-        cout << target_path[i] << " " << target_path[i + 1] << endl;
+        std::cout << target_path[i] << " " << target_path[i + 1] << std::endl;
     }
     return 0;
 }
