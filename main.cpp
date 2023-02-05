@@ -12,7 +12,6 @@ using namespace cv;
 cv::Scalar nodeColor[2]{cv::Scalar(100, 53, 241), cv::Scalar(104, 57, 245)};
 cv::Scalar edgeColor[2]{cv::Scalar(209, 202, 252), cv::Scalar(213, 206, 255)};
 
-
 cv::Vec4f get_line(const cv::Point &point1, const cv::Point &point2) {
     float k, b;
     if (point1.x == point2.x) {
@@ -146,7 +145,6 @@ int main() {
     char img_path[80];
     cin >> img_path;
     Mat img = cv::imread(img_path);
-    Mat img_COPY = img;
     int loc_max = 0;
     vector<Point> points;
     std::vector<std::pair<cv::Point, cv::Point>> lines;
@@ -201,9 +199,9 @@ int main() {
     int thickness = 1;
     // 在图像上绘制直线
     for (auto l: line_s) {
-        line(img_COPY, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 0), thickness, LINE_AA);
+        line(img, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 0), thickness, LINE_AA);
     }
-    // 显示图像
+    imshow("img",img);
     for (auto &l: line_s) {
         int minLength[6];
         for (int &i: minLength) {
@@ -260,12 +258,12 @@ int main() {
             for (auto &point: points) {
                 if (is_in_area(point, line_1, line_2)) {
                     float tmp_length = get_length(l[0], l[1], point.x, point.y, 2);
-                    if (point.x > l[0]) {
+                    if (point.x >= l[0]) {
                         if (tmp_length < minLength[4]) {
                             minLength[4] = tmp_length;
                             matchedPoint[4] = point;
                         }
-                    } else if (point.x < l[2]) {
+                    } else if (point.x <= l[2]) {
                         if (abs(tmp_length) < minLength[5]) {
                             minLength[5] = abs(tmp_length);
                             matchedPoint[5] = point;
@@ -277,6 +275,11 @@ int main() {
                 add_to_vector_if_not_exists(lines, make_pair(matchedPoint[4], matchedPoint[5]));
         }
     }
+    for(auto &l:lines){
+        line(img, l.first, l.second, Scalar(0, 0, 255), thickness, LINE_AA);
+    }
+    imshow("img1",img);
+    waitKey(0);
 
     num_lines = lines.size();
     cout << num_lines << endl;
