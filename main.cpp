@@ -91,6 +91,30 @@ void add_to_vector_if_not_exists(std::vector<std::pair<cv::Point, cv::Point>> &l
     lines.push_back(element);
 }
 
+void compare_and_swap(int &x_0, int &y_0, int &x_1, int &y_1, bool flag) {
+    if (flag == 0) {
+        if (y_0 < y_1) {
+            swap(y_0, y_1);
+            swap(x_0, x_1);
+        }
+    } else {
+        if (x_0 < x_1) {
+            swap(y_0, y_1);
+            swap(x_0, x_1);
+        }
+    }
+}
+
+float get_length(int &x_0, int &y_0, int &x_1, int &y_1, int flag) {
+    if (flag == 0) {
+        return (y_1 - y_0);
+    } else if (flag == 1) {
+        return (x_1 - x_0);
+    } else {
+        return sqrt((x_1 - x_0) * (x_1 - x_0) + (y_1 - y_0) * (y_1 - y_0));
+    }
+}
+
 int matrix_size, num_lines;
 vector<int> path;
 vector<vector<int>> edges;
@@ -129,8 +153,6 @@ int main() {
     Mat nodesMask, edgesMask;
     cv::inRange(img, nodeColor[0], nodeColor[1], nodesMask);
     cv::inRange(img, edgeColor[0], edgeColor[1], edgesMask);
-    imshow("nodes", nodesMask);
-    imshow("edges", edgesMask);
 
     vector<Vec3f> circles;
     HoughCircles(nodesMask, circles, HOUGH_GRADIENT, 1, 10, 100, 15, 10, 40);
@@ -182,7 +204,6 @@ int main() {
         line(img_COPY, Point(l[0], l[1]), Point(l[2], l[3]), Scalar(0, 0, 0), thickness, LINE_AA);
     }
     // 显示图像
-    imshow("Detected Lines", img_COPY);
     for (auto &l: line_s) {
         int minLength[6];
         for (int &i: minLength) {
@@ -191,15 +212,21 @@ int main() {
         Point matchedPoint[6];
         if (abs(l[0] - l[2]) <= 10) {
             l[0] = nearest_multiple(l[0]);
+            l[2] = l[0];
+            compare_and_swap(l[0], l[1], l[2], l[3], false);
             for (auto &point: points) {
                 if (point.x == l[0]) {
-                    if (abs(point.y - l[1]) < minLength[0]) {
-                        minLength[0] = abs(point.y - l[1]);
-                        matchedPoint[0] = point;
-                    }
-                    if (abs(point.y - l[3]) < minLength[1]) {
-                        minLength[1] = abs(point.y - l[3]);
-                        matchedPoint[1] = point;
+                    float tmp_length = get_length(l[0], l[1], point.x, point.y, 0);
+                    if (tmp_length > 0) {
+                        if (tmp_length < minLength[0]) {
+                            minLength[0] = tmp_length;
+                            matchedPoint[0] = point;
+                        }
+                    } else {
+                        if (abs(tmp_length) < minLength[1]) {
+                            minLength[1] = abs(tmp_length);
+                            matchedPoint[1] = point;
+                        }
                     }
                 }
             }
@@ -207,33 +234,42 @@ int main() {
                 add_to_vector_if_not_exists(lines, make_pair(matchedPoint[0], matchedPoint[1]));
         } else if (abs(l[1] - l[3]) <= 10) {
             l[1] = nearest_multiple(l[1]);
+            l[3] = l[1];
+            compare_and_swap(l[0], l[1], l[2], l[3], true);
             for (auto &point: points) {
                 if (point.y == l[1]) {
-                    if (abs(point.x - l[0]) < minLength[2]) {
-                        minLength[2] = abs(point.x - l[0]);
-                        matchedPoint[2] = point;
-                    }
-                    if (abs(point.x - l[2]) < minLength[3]) {
-                        minLength[3] = abs(point.x - l[2]);
-                        matchedPoint[3] = point;
+                    float tmp_length = get_length(l[0], l[1], point.x, point.y, 1);
+                    if (tmp_length > 0) {
+                        if (tmp_length < minLength[2]) {
+                            minLength[2] = tmp_length;
+                            matchedPoint[2] = point;
+                        }
+                    } else {
+                        if (abs(tmp_length) < minLength[3]) {
+                            minLength[3] = abs(tmp_length);
+                            matchedPoint[3] = point;
+                        }
                     }
                 }
             }
             if (matchedPoint[2] != matchedPoint[3])
                 add_to_vector_if_not_exists(lines, make_pair(matchedPoint[2], matchedPoint[3]));
         } else {
+            compare_and_swap(l[0], l[1], l[2], l[3], true);
             get_parallel_lines(l, 20);
             for (auto &point: points) {
                 if (is_in_area(point, line_1, line_2)) {
-                    if (sqrt((point.x - l[0]) * (point.x - l[0]) + (point.y - l[1]) * (point.y - l[1])) <
-                        minLength[4]) {
-                        minLength[4] = sqrt((point.x - l[0]) * (point.x - l[0]) + (point.y - l[1]) * (point.y - l[1]));
-                        matchedPoint[4] = point;
-                    }
-                    if (sqrt((point.x - l[2]) * (point.x - l[2]) + (point.y - l[3]) * (point.y - l[3])) <
-                        minLength[5]) {
-                        minLength[5] = sqrt((point.x - l[2]) * (point.x - l[2]) + (point.y - l[3]) * (point.y - l[3]));
-                        matchedPoint[5] = point;
+                    float tmp_length = get_length(l[0], l[1], point.x, point.y, 2);
+                    if (point.x > l[0]) {
+                        if (tmp_length < minLength[4]) {
+                            minLength[4] = tmp_length;
+                            matchedPoint[4] = point;
+                        }
+                    } else if (point.x < l[2]) {
+                        if (abs(tmp_length) < minLength[5]) {
+                            minLength[5] = abs(tmp_length);
+                            matchedPoint[5] = point;
+                        }
                     }
                 }
             }
