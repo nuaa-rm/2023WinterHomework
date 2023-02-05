@@ -12,28 +12,6 @@ using namespace cv;
 cv::Scalar nodeColor[2]{cv::Scalar(100, 53, 241), cv::Scalar(104, 57, 245)};
 cv::Scalar edgeColor[2]{cv::Scalar(209, 202, 252), cv::Scalar(213, 206, 255)};
 
-std::vector<std::pair<cv::Point, cv::Point>>
-paint_line_if_color(const cv::Mat &image, const cv::Point &point1, const cv::Point &point2, const cv::Vec3b &color) {
-    std::vector<std::pair<cv::Point, cv::Point>> lines = {};
-    // 获取直线的长度
-    int length = (int) std::sqrt(std::pow(point1.x - point2.x, 2) + std::pow(point1.y - point2.y, 2));
-
-    // 遍历直线上的每个像素
-    for (int i = 16; i < length - 16; i++) {
-        int x = point1.x + i * (point2.x - point1.x) / length;
-        int y = point1.y + i * (point2.y - point1.y) / length;
-        // 获取像素的颜色
-        cv::Vec3b pixel_color = image.at<cv::Vec3b>(y, x);
-        // 如果像素的颜色与特定的RGB颜色不同，则不涂色
-        if (pixel_color[0] != color[0] || pixel_color[1] != color[1] || pixel_color[2] != color[2]) {
-            return lines;
-        }
-    }
-
-    // 如果所有像素的颜色都与特定的RGB颜色相同，则绘制蓝色的直线
-    lines.emplace_back(point1, point2);
-    return lines;
-}
 
 cv::Vec4f get_line(const cv::Point &point1, const cv::Point &point2) {
     float k, b;
@@ -103,9 +81,8 @@ int nearest_multiple(int x) {
 }
 
 
-std::vector<std::pair<cv::Point, cv::Point>> lines;
-
-void add_to_vector_if_not_exists(const std::pair<cv::Point, cv::Point> &element) {
+void add_to_vector_if_not_exists(std::vector<std::pair<cv::Point, cv::Point>> &lines,
+                                 const std::pair<cv::Point, cv::Point> &element) {
     for (const auto &line: lines) {
         if (line == element) {
             return;
@@ -148,6 +125,7 @@ int main() {
     Mat img_COPY = img;
     int loc_max = 0;
     vector<Point> points;
+    std::vector<std::pair<cv::Point, cv::Point>> lines;
     Mat nodesMask, edgesMask;
     cv::inRange(img, nodeColor[0], nodeColor[1], nodesMask);
     cv::inRange(img, edgeColor[0], edgeColor[1], edgesMask);
@@ -210,39 +188,39 @@ int main() {
         for (int &i: minLength) {
             i = 999999;
         }
-        Point matched_point_1_1, matched_point_1_2, matched_point_2_1, matched_point_2_2, matched_point_3_1, matched_point_3_2;
+        Point matchedPoint[6];
         if (abs(l[0] - l[2]) <= 10) {
             l[0] = nearest_multiple(l[0]);
             for (auto &point: points) {
                 if (point.x == l[0]) {
                     if (abs(point.y - l[1]) < minLength[0]) {
                         minLength[0] = abs(point.y - l[1]);
-                        matched_point_1_1 = point;
+                        matchedPoint[0] = point;
                     }
                     if (abs(point.y - l[3]) < minLength[1]) {
                         minLength[1] = abs(point.y - l[3]);
-                        matched_point_1_2 = point;
+                        matchedPoint[1] = point;
                     }
                 }
             }
-            if (matched_point_1_1 != matched_point_1_2)
-                add_to_vector_if_not_exists(make_pair(matched_point_1_1, matched_point_1_2));
+            if (matchedPoint[0] != matchedPoint[1])
+                add_to_vector_if_not_exists(lines, make_pair(matchedPoint[0], matchedPoint[1]));
         } else if (abs(l[1] - l[3]) <= 10) {
             l[1] = nearest_multiple(l[1]);
             for (auto &point: points) {
                 if (point.y == l[1]) {
                     if (abs(point.x - l[0]) < minLength[2]) {
                         minLength[2] = abs(point.x - l[0]);
-                        matched_point_2_1 = point;
+                        matchedPoint[2] = point;
                     }
                     if (abs(point.x - l[2]) < minLength[3]) {
                         minLength[3] = abs(point.x - l[2]);
-                        matched_point_2_2 = point;
+                        matchedPoint[3] = point;
                     }
                 }
             }
-            if (matched_point_2_1 != matched_point_2_2)
-                add_to_vector_if_not_exists(make_pair(matched_point_2_1, matched_point_2_2));
+            if (matchedPoint[2] != matchedPoint[3])
+                add_to_vector_if_not_exists(lines, make_pair(matchedPoint[2], matchedPoint[3]));
         } else {
             get_parallel_lines(l, 20);
             for (auto &point: points) {
@@ -250,28 +228,19 @@ int main() {
                     if (sqrt((point.x - l[0]) * (point.x - l[0]) + (point.y - l[1]) * (point.y - l[1])) <
                         minLength[4]) {
                         minLength[4] = sqrt((point.x - l[0]) * (point.x - l[0]) + (point.y - l[1]) * (point.y - l[1]));
-                        matched_point_3_1 = point;
+                        matchedPoint[4] = point;
                     }
                     if (sqrt((point.x - l[2]) * (point.x - l[2]) + (point.y - l[3]) * (point.y - l[3])) <
                         minLength[5]) {
                         minLength[5] = sqrt((point.x - l[2]) * (point.x - l[2]) + (point.y - l[3]) * (point.y - l[3]));
-                        matched_point_3_2 = point;
+                        matchedPoint[5] = point;
                     }
                 }
             }
-            if (matched_point_3_1 != matched_point_3_2)
-                add_to_vector_if_not_exists(make_pair(matched_point_3_1, matched_point_3_2));
+            if (matchedPoint[4] != matchedPoint[5])
+                add_to_vector_if_not_exists(lines, make_pair(matchedPoint[4], matchedPoint[5]));
         }
     }
-
-
-
-//    for (int i = 0; i < points.size(); ++i) {
-//        for (int j = i + 1; j < points.size(); ++j) {
-//            auto painted_lines = paint_line_if_color(img, points[i], points[j], Vec3b(211, 204, 255));
-//            lines.insert(lines.end(), painted_lines.begin(), painted_lines.end());
-//        }
-//    }
 
     num_lines = lines.size();
     cout << num_lines << endl;
