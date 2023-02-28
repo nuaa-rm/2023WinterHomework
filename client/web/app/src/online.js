@@ -79,7 +79,7 @@ class Online extends Component {
                             this.state.name ?
                                 <div style={{paddingTop: 150, textAlign: 'center'}}>
                                     <h1>欢迎，{this.state.name}</h1>
-                                    <h2>本功能其他部分正在开发中</h2>
+                                    <h2>您已成功登陆</h2>
                                 </div> :
                                 <Result
                                     status="info"

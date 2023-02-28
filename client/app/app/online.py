@@ -182,6 +182,9 @@ class Client:
     def setClearLogin(self, func):
         self.clearLogin = func
 
+    def submitJudge(self, info):
+        self._post(appPoint + f'/commit', info)
+
     def _post(self, url, data: Union[Dict, List, str]):
         if self.session is None:
             self.clearLogin()
@@ -205,6 +208,11 @@ class Client:
         return res.json()
 
     def _commitCreator(self):
+        def getName():
+            return self.name
+        return getName
+
+    def _getNameCreator(self):
         def commit(tid, data):
             res = self._post(appPoint + f'/lobby/{self.lobby}/{tid}/commit', data)
             if res['code'] != 0 and res['code'] != 2:
@@ -273,7 +281,8 @@ class Client:
             self._createTaskCreator(),
             self._deleteTaskCreator(),
             self._refreshTaskCreator(),
-            self._refreshResultCreator()
+            self._refreshResultCreator(),
+            self._commitCreator()
         ]
 
 

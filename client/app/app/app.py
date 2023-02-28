@@ -30,7 +30,7 @@ def minimizeWindowCreator(window):
     return minimizeWindow
 
 
-def localCompute(req):
+def localCompute2(req):
     size = req['size']
     en = req['en']
     pn = req['pn']
@@ -52,12 +52,17 @@ def localCompute(req):
     cv2.imwrite(os.path.join(imagesPath, 'result.png'), result[0])
     judge.printResult(*result[1:])
     result = judge.result2dict(*result[1:])
+    # if req['export']:
+    #     result['mode'] = req['mode']
+    #     online.client.submitJudge(result)
     print(result)
     return result
 
 
 def stepComputeCreator(window):
     def stepCompute():
+        shutil.rmtree(imagesPath)
+        os.mkdir(imagesPath)
         file_types = ('Image Files (*.bmp;*.jpg;*.gif;*.png)',)
         path = window.create_file_dialog(webview.OPEN_DIALOG, file_types=file_types)
         try:
@@ -94,7 +99,7 @@ def run():
     window.expose(
         closeWindowCreator(window),
         minimizeWindowCreator(window),
-        localCompute,
+        localCompute2,
         stepComputeCreator(window),
         login,
         initClientCreator(window),

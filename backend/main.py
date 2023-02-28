@@ -7,6 +7,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from pydantic import BaseModel
 
 from depends import getUser, getLobby
 from lobby import Lobby
@@ -20,6 +21,17 @@ app = FastAPI(
 limiter = Limiter(key_func=get_remote_address, default_limits=["60/minute"])
 app.add_middleware(SlowAPIMiddleware)
 app.state.limiter = limiter
+
+
+class JudgeInfo(BaseModel):
+    mode: str
+    time: str
+    co: bool
+    nr: str
+    np: str
+    er: str
+    ep: str
+    ok: bool
 
 
 @app.exception_handler(RateLimitExceeded)
@@ -36,6 +48,13 @@ async def requestValidationHandler():
         status_code=422,
         content={"code": 11, "message": "参数错误"}
     )
+
+
+@app.get('/commit')
+@limiter.limit('100/minute')
+async def createLobby(request: Request, data: JudgeInfo, user: Dict = Depends(getUser)):
+    print(data, user['sid'])
+    return {'code': 0}
 
 
 @app.get('/lobby/create')

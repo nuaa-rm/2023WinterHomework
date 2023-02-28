@@ -1,11 +1,12 @@
 import React, {Component} from 'react';
-import {Card, Form, Select, Slider, Row, Col, Tooltip, Spin, Statistic, Empty, Space, Result} from "antd";
+import {Card, Form, Select, Slider, Row, Col, Tooltip, Spin, Statistic, Empty, Space, Result, Switch} from "antd";
 import {QuestionCircleOutlined } from "@ant-design/icons";
+import { getName } from "./utils";
 
 import './border.css'
 
 class Local extends Component {
-    state = {mode: 'stupid', size: 3, loading: false, result: null, t: new Date().getTime()}
+    state = {mode: 'stupid', size: 3, loading: false, result: null, t: new Date().getTime(), name: null}
 
     formRef = React.createRef()
 
@@ -33,7 +34,34 @@ class Local extends Component {
         }
     }
 
+    refreshName() {
+        const that = this
+        try {
+            getName().then(n => {
+                if (n !== that.state.name) {
+                    that.setState({name: n})
+                }
+                console.log(n)
+            })
+        } catch (_) {
+            setTimeout(()=>{
+                getName().then(n => {
+                    if (n !== that.state.name) {
+                        that.setState({name: n})
+                    }
+                    console.log(n)
+                })
+            }, 500)
+        }
+        console.log('do')
+    }
+
+    componentDidMount() {
+        this.refreshName()
+    }
+
     render() {
+        this.refreshName()
         return (
             <div className="content">
                 <Card title="参数设置" style={{width: '100%'}} size="small">
@@ -41,7 +69,8 @@ class Local extends Component {
                         mode: 'stupid',
                         size: 3,
                         en: 10,
-                        pn: 6
+                        pn: 6,
+                        export: false
                     }}>
                         <Form.Item label="难度" name="mode">
                             <Select
@@ -106,6 +135,17 @@ class Local extends Component {
                                 15: '少'
                             }} tooltip={{formatter: null}} disabled={this.state.mode !== 'custom'}/>
                         </Form.Item>
+                        {/*<Form.Item label="是否上报数据" name="export">*/}
+                        {/*    {*/}
+                        {/*        !this.state.name*/}
+                        {/*            ?*/}
+                        {/*            <Tooltip title={'请到在线登陆板块验证用户后使用此功能'}>*/}
+                        {/*                <Switch disabled={true} checked={false} />*/}
+                        {/*            </Tooltip>*/}
+                        {/*            :*/}
+                        {/*            <Switch  />*/}
+                        {/*    }*/}
+                        {/*</Form.Item>*/}
                     </Form>
                 </Card>
                 <Row style={{paddingTop: 5, paddingBottom: 5}} gutter={5}>

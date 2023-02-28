@@ -7,7 +7,8 @@ export function minimizeWindow() {
 }
 
 export function localCompute(e) {
-    return window?.pywebview?.api?.localCompute(e)
+    alert('test')
+    return window?.pywebview?.api?.localCompute2({})
 }
 
 export function stepCompute(e) {
@@ -28,4 +29,8 @@ export function login() {
 
 export function initClient() {
     return window?.pywebview?.api?.initClient()
+}
+
+export function getName() {
+    return window?.pywebview?.api?.getName()
 }

@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {Layout, Button, Tabs, Tooltip, Modal} from 'antd';
-import {MinusOutlined, CloseOutlined, CaretRightOutlined, GatewayOutlined, PictureOutlined, RedEnvelopeOutlined} from '@ant-design/icons'
+import {MinusOutlined, CloseOutlined, CaretRightOutlined, GatewayOutlined, PictureOutlined, LinkOutlined} from '@ant-design/icons'
 import {closeWindow, minimizeWindow, localCompute} from "./utils";
 import Local from "./local";
 import Picture from "./picture";
@@ -23,15 +23,17 @@ class App extends Component {
         const that = this
         if (that.state.tabKey === '1') {
             const data = that.localTestRef?.current?.startComputeCreator()()
-            console.log(data)
+            console.error(data)
             try {
                 const result = await localCompute(data)
+                console.error(result)
                 that.localTestRef?.current?.finishComputeCreator()(result)
             } catch (_) {
                 Modal.error({
                     title: '出错啦',
                     content: '程序运行时出现错误'
                 })
+                console.error('error')
                 that.localTestRef?.current?.finishComputeCreator()(null)
             }
         } else if (that.state.tabKey === '2') {
@@ -139,11 +141,12 @@ class App extends Component {
                             },
                             {
                                 label:
-                                    <Tooltip placement="right" title="在线红包（开发中）" color="blue">
-                                        <RedEnvelopeOutlined style={{fontSize: 20}} />
+                                    <Tooltip placement="right" title="在线登陆" color="blue">
+                                        <LinkOutlined style={{fontSize: 20}} />
                                     </Tooltip>,
                                 key: '3',
                                 children: <Online />,
+
                             },
                         ]}
                     />
