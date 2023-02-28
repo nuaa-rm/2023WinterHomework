@@ -30,7 +30,7 @@ def minimizeWindowCreator(window):
     return minimizeWindow
 
 
-def localCompute2(req):
+def localCompute(req):
     size = req['size']
     en = req['en']
     pn = req['pn']
@@ -52,9 +52,9 @@ def localCompute2(req):
     cv2.imwrite(os.path.join(imagesPath, 'result.png'), result[0])
     judge.printResult(*result[1:])
     result = judge.result2dict(*result[1:])
-    # if req['export']:
-    #     result['mode'] = req['mode']
-    #     online.client.submitJudge(result)
+    if req['export']:
+        result['mode'] = req['mode']
+        print('server return: ', online.client.submitJudge(result))
     print(result)
     return result
 
@@ -99,10 +99,10 @@ def run():
     window.expose(
         closeWindowCreator(window),
         minimizeWindowCreator(window),
-        localCompute2,
+        localCompute,
         stepComputeCreator(window),
         login,
         initClientCreator(window),
         *online.client.getFuncs()
     )
-    webview.start(gui='gtk', http_server=True, debug=True)
+    webview.start(gui='gtk', http_server=True)

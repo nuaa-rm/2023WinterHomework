@@ -7,12 +7,12 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
-from pydantic import BaseModel
 
 from depends import getUser, getLobby
 from lobby import Lobby
 from task import TaskConfig, TaskAnswer
 from host import host
+import commit as com
 
 app = FastAPI(
     title="长空御风2023寒假作业",
@@ -23,19 +23,8 @@ app.add_middleware(SlowAPIMiddleware)
 app.state.limiter = limiter
 
 
-class JudgeInfo(BaseModel):
-    mode: str
-    time: str
-    co: bool
-    nr: str
-    np: str
-    er: str
-    ep: str
-    ok: bool
-
-
 @app.exception_handler(RateLimitExceeded)
-async def rateLimitErrorHandler():
+async def rateLimitErrorHandler(request: Request, exc):
     return JSONResponse(
         status_code=429,
         content={"code": 429, "message": "访问过快，请稍后重试"}
@@ -43,18 +32,31 @@ async def rateLimitErrorHandler():
 
 
 @app.exception_handler(RequestValidationError)
-async def requestValidationHandler():
+async def requestValidationHandler(request: Request, exc):
     return JSONResponse(
         status_code=422,
         content={"code": 11, "message": "参数错误"}
     )
 
 
-@app.get('/commit')
+@app.post('/commit')
 @limiter.limit('100/minute')
-async def createLobby(request: Request, data: JudgeInfo, user: Dict = Depends(getUser)):
-    print(data, user['sid'])
+async def commitInfo(request: Request, data: com.JudgeInfo, user: Dict = Depends(getUser)):
+    com.addInfo(user['sid'], data)
     return {'code': 0}
+
+
+@app.get('/setListen')
+@limiter.limit('10/minute')
+async def setListen(request: Request, listen: str, user: Dict = Depends(getUser)):
+    com.setListen(listen, user['sid'])
+    return {'code': 0}
+
+
+@app.get('/getInfo')
+@limiter.limit('60/minute')
+async def getInfo(request: Request, user: Dict = Depends(getUser)):
+    return {'code': 0, 'data': com.getInfo(user['sid'])}
 
 
 @app.get('/lobby/create')

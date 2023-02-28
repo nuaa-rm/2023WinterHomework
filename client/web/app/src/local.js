@@ -1,6 +1,21 @@
 import React, {Component} from 'react';
-import {Card, Form, Select, Slider, Row, Col, Tooltip, Spin, Statistic, Empty, Space, Result, Switch} from "antd";
-import {QuestionCircleOutlined } from "@ant-design/icons";
+import {
+    Card,
+    Form,
+    Select,
+    Slider,
+    Row,
+    Col,
+    Tooltip,
+    Spin,
+    Statistic,
+    Empty,
+    Space,
+    Result,
+    Switch,
+    Button
+} from "antd";
+import {ReloadOutlined, QuestionCircleOutlined} from "@ant-design/icons";
 import { getName } from "./utils";
 
 import './border.css'
@@ -36,14 +51,14 @@ class Local extends Component {
 
     refreshName() {
         const that = this
-        try {
+        if (window.pywebview?.api?.getName) {
             getName().then(n => {
                 if (n !== that.state.name) {
                     that.setState({name: n})
                 }
                 console.log(n)
             })
-        } catch (_) {
+        } else {
             setTimeout(()=>{
                 getName().then(n => {
                     if (n !== that.state.name) {
@@ -61,7 +76,6 @@ class Local extends Component {
     }
 
     render() {
-        this.refreshName()
         return (
             <div className="content">
                 <Card title="参数设置" style={{width: '100%'}} size="small">
@@ -135,17 +149,12 @@ class Local extends Component {
                                 15: '少'
                             }} tooltip={{formatter: null}} disabled={this.state.mode !== 'custom'}/>
                         </Form.Item>
-                        {/*<Form.Item label="是否上报数据" name="export">*/}
-                        {/*    {*/}
-                        {/*        !this.state.name*/}
-                        {/*            ?*/}
-                        {/*            <Tooltip title={'请到在线登陆板块验证用户后使用此功能'}>*/}
-                        {/*                <Switch disabled={true} checked={false} />*/}
-                        {/*            </Tooltip>*/}
-                        {/*            :*/}
-                        {/*            <Switch  />*/}
-                        {/*    }*/}
-                        {/*</Form.Item>*/}
+                        <Tooltip title={'请到在线登陆板块验证用户后使用此功能'}>
+                            <Form.Item label="是否上报数据" name="export">
+                                <Switch disabled={!this.state.name} />
+                            </Form.Item>
+                        </Tooltip>
+                        <Button type="text" icon={<ReloadOutlined />} onClick={()=>this.refreshName()} />
                     </Form>
                 </Card>
                 <Row style={{paddingTop: 5, paddingBottom: 5}} gutter={5}>

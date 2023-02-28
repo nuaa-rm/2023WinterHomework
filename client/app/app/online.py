@@ -20,7 +20,7 @@ from . import generator
 
 endPoint = 'https://api.auth.bismarck.xyz'
 webPoint = 'http://auth.bismarck.xyz'
-appPoint = 'http://127.0.0.1:8002'
+appPoint = 'http://wh_api.bismarck.xyz'
 
 
 def initSession(jwt=None):
@@ -125,10 +125,10 @@ def decodeJWT(jwt):
 
 
 def getTimeDelta():
-    ntp_clint = ntplib.NTPClient()
-    local_time = time.time()
-    internet_time = ntp_clint.request('pool.ntp.org').tx_time
-    return local_time - internet_time
+    # ntp_clint = ntplib.NTPClient()
+    # local_time = time.time()
+    # internet_time = ntp_clint.request('pool.ntp.org').tx_time
+    return 0
 
 
 class Task(Thread):
@@ -191,11 +191,11 @@ class Client:
             raise RuntimeError
         if not isinstance(data, str):
             data = json.dumps(data)
-        res = self.session.post(url, json=data)
+        res = self.session.post(url, data=data)
         if res.status_code == 401:
             self.init()
             return self._post(url, data)
-        return res.json()
+        return res.text
 
     def _get(self, url):
         if self.session is None:
@@ -208,16 +208,16 @@ class Client:
         return res.json()
 
     def _commitCreator(self):
-        def getName():
-            return self.name
-        return getName
-
-    def _getNameCreator(self):
         def commit(tid, data):
             res = self._post(appPoint + f'/lobby/{self.lobby}/{tid}/commit', data)
             if res['code'] != 0 and res['code'] != 2:
                 raise RuntimeError
         return commit
+
+    def _getNameCreator(self):
+        def getName():
+            return self.name
+        return getName
 
     def _createLobbyCreator(self):
         def createLobby():
@@ -274,15 +274,16 @@ class Client:
 
     def getFuncs(self):
         return [
-            self._createLobbyCreator(),
-            self._changeLobbyCreator(),
-            self._getUsersCreator(),
-            self._getAdminCreator(),
-            self._createTaskCreator(),
-            self._deleteTaskCreator(),
-            self._refreshTaskCreator(),
-            self._refreshResultCreator(),
-            self._commitCreator()
+            # self._createLobbyCreator(),
+            # self._changeLobbyCreator(),
+            # self._getUsersCreator(),
+            # self._getAdminCreator(),
+            # self._createTaskCreator(),
+            # self._deleteTaskCreator(),
+            # self._refreshTaskCreator(),
+            # self._refreshResultCreator(),
+            self._commitCreator(),
+            self._getNameCreator()
         ]
 
 
